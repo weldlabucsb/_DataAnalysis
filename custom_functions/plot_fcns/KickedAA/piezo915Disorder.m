@@ -1,4 +1,4 @@
-function [fig_handle, fig_filename] = freqDisorder2dwidthpcolor(RunDatas,RunVars,options)
+function [fig_handle, fig_filename] = piezo915Disorder(RunDatas,RunVars,options)
 % PLOTFUNCTIONTEMPLATE makes a plot from the given RunDatas against the
 % dependent variable {varied_variable_name}. Optional arguments are passed
 % to setupPlot, which automatically puts axes and a legend on the plot,
@@ -52,15 +52,14 @@ varargin = {RunVars.heldvars_all};
     % individually, so I looped over the RunDatas and repeat-averaged each
     % one.
     
-    vars_to_be_averaged = {'summedODy','RawMaxPeak3Density','cloudSD_y','atomNumber'};
+    vars_to_be_averaged = {'summedODy','RawPeak3Density','cloudSD_y','atomNumber','RawMaxPeak3Density'};
     for j = 1:length(RunDatas)
         [avg_atomdata{j}, varied_var_values{j}] = avgRepeats(...
             RunDatas{j}, varied_variable_name, vars_to_be_averaged);
     end
 
     close all;
-    first_fig = figure(1);
-    cmap = colormap( jet( length(RunDatas) ) );
+    cmap = colormap( jet( length(RunDatas)+4 ) );
 
     
    
@@ -68,11 +67,11 @@ varargin = {RunVars.heldvars_all};
     frac = 0.75;
     lambdas = zeros(0);
     Ts = zeros(0);
-    IPRvec = zeros(0);
-    fracWidthsvec = zeros(0);
     Widthsvec = zeros(0);
+    fracWidthsvec = zeros(0);
+    atomNumsVec = zeros(0);
+    densityVec = zeros(0);
     for j = 1:length(RunDatas)
-        
         % Here I compute each fracWidth from the repeat-averaged densities
         % for the iith entry in each RunData, which are stored in
         % avg_atomdata{j}(ii).summedODy
@@ -88,34 +87,17 @@ varargin = {RunVars.heldvars_all};
             %do delta and J calculations
             s1 = atomdata(ii).vars.(PrimaryLatticeDepthVar);
             
-            
-%             if(isfield(atomdata(ii).vars,'ErPerVolt915'))
-% %                 disp('ErPerVolt915 Exists!')
-%                 secondaryErPerVolt = atomdata(ii).vars.ErPerVolt915;  % Calibration from KD for the secondary lattice 
-%             else
-% %                 disp('ErPerVolt915 Doesn''t exist')
-%                 %got from KD on 1/5
-%                 secondaryErPerVolt = 22.34;
-%             end
-
-
             %for 1/16 Data
 %             secondaryErPerVolt = 22.313;
             
             %for 2/27 Data
             secondaryErPerVolt = 12.54;
+            
+            %for 3/23 Data
+            secondaryErPerVolt = 12.94;
+            
 
             secondaryPDGain = 1; 
-            
-            %%%DONT USE (unless fit is good)
-% % % % % %             if(isfield(atomdata(ii).vars,'Scope_CH2_V0'))
-% % % % % % %                 disp('scope variable exists')
-% % % % % %                 secondaryPDPulseAmp = atomdata(ii).vars.('Scope_CH2_V0');
-% % % % % %                 s2 = secondaryPDPulseAmp*secondaryErPerVolt/secondaryPDGain;
-% % % % % %             else
-% % % % % %                 s2 = vva_to_voltage(atomdata(ii).vars.Lattice915VVA)*secondaryErPerVolt/secondaryPDGain;
-% % % % % % %                 s2 = secondaryErPerVolt*vva_to_voltage(atomdata(ii).vars.Lattice915VVA);
-% % % % % %             end
 
             s2 = vva_to_voltage(atomdata(ii).vars.Lattice915VVA)*secondaryErPerVolt/secondaryPDGain;
             la1 = 1064;
@@ -143,15 +125,21 @@ varargin = {RunVars.heldvars_all};
             
             fracWidths{j}(ii) = width;
             Widths{j}(ii) = avg_atomdata{j}(ii).cloudSD_y;
-            
+            atomNums{j}(ii) = avg_atomdata{j}(ii).atomNumber;
+            peakDensities{j}(ii) = avg_atomdata{j}(ii).RawMaxPeak3Density; %#ok<*AGROW>
+            lambdaCell{j}(ii) = Delta*tau/J;
+            TCell{j}(ii) = T_us*J/hbar_Er1064_us;
+            maxOD{j}(ii) = max(smoothdata(avg_atomdata{j}(ii).summedODy,'movmean',20));
+
+            %%%for cloudSY_y
             if (Widths{j}(ii)  > 6E-5)
                 Widths{j}(ii) = NaN;
             end
-            
-            
-            if (fracWidths{j}(ii)  > 35)
+            %%%for fracWidth
+            if (fracWidths{j}(ii)  > 40)
                 fracWidths{j}(ii) = NaN;
             end
+
               
 %               fracWidths{j}(ii) = avg_atomdata{j}(ii).cloudSD_y;
               
@@ -170,16 +158,35 @@ varargin = {RunVars.heldvars_all};
         Widths{j} = smoothdata(Widths{j},'movmean',2);
         Widthsvec = [Widthsvec Widths{j}];
         
-        fracWidths{j} = smoothdata(fracWidths{j},'movmean',2);
+        fracWidths{j} = smoothdata(fracWidths{j},'movmean',3);
         fracWidthsvec = [fracWidthsvec fracWidths{j}];
+        
+        atomNums{j} = smoothdata(atomNums{j},'movmean',3);
+        atomNumsVec = [atomNumsVec atomNums{j}];
+        
+        peakDensities{j} = smoothdata(peakDensities{j},'movmean',4);
+        densityVec = [densityVec peakDensities{j}];
     end
     %%% End Data Manipulation %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Then plot things, just looping over the values I computed above.
     
-    figure_title_dependent_var = ['width at ' num2str(frac) ' maximum (summedODy, au)'];
+    first_fig = figure(1);
+    figure_title_dependent_var = ['cloudSD_y'];
 %     figure_title_dependent_var = ['cloudSD_y'];
+    for j = 1:length(RunDatas)
+        plot( Depths915{j}, Widths{j}, 'o-',...
+            'LineWidth', options.LineWidth,...
+            'Color',cmap(j,:));
+%         set(gca,'yscale','log');
+        hold on;
+    end
+    hold off;
+    
+    second_fig = figure(2);
+    second_fig_dependent_var = ['width at ' num2str(frac) ' maximum (summedODy, au)'];
+    %     figure_title_dependent_var = ['cloudSD_y'];
     for j = 1:length(RunDatas)
         plot( Depths915{j}, fracWidths{j}, 'o-',...
             'LineWidth', options.LineWidth,...
@@ -189,62 +196,100 @@ varargin = {RunVars.heldvars_all};
     end
     hold off;
     
-        sec_fig = figure(2);
-    scatter3(lambdas,Ts,Widthsvec);
-    xlabel('Lambda');
-    ylabel('T''');
-    title('cloudSD_y');
-%     title(['width at ' num2str(frac) ' maximum (summedODy, au)']);
-    hold on;
-    plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
+        third_fig = figure(3);
+    %     figure_title_dependent_var = ['cloudSD_y'];
+    for j = 1:length(RunDatas)
+        plot( Depths915{j}, atomNums{j}, 'o-',...
+            'LineWidth', options.LineWidth,...
+            'Color',cmap(j,:));
+%         set(gca,'yscale','log');
+        hold on;
+    end
     hold off;
-%     xlim([0,2*max(Ts)]);
-%     ylim([0,max(Ts)]);
     
-    sixth_fig = figure(6);
-%     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
-    pColorCenteredNonGrid(gca,lambdas,Ts,Widthsvec,1E-6,1E-6);
-    
-    zlim([0 5E-5]);
-    hold on;
-    plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
+            fourth_fig = figure(4);
+    %     figure_title_dependent_var = ['cloudSD_y'];
+            hold on;
+    for j = 1:length(RunDatas)
+        plot( lambdaCell{j}./TCell{j}, peakDensities{j}, 'o-',...
+            'LineWidth', options.LineWidth,...
+            'Color',cmap(j,:));
+%         set(gca,'yscale','log');
+    end
+            xline(2, 'r--',...
+            'LineWidth', options.LineWidth);
     hold off;
-%     xlim([0 0.02]);
-        xlabel('Lambda');
-    ylabel('T''');
-    title('cloudSD_y');
-%     title(['width at ' num2str(frac) ' maximum (summedODy, au)']);
-    colorbar;
     
-    %try different colormap 
-            sev_fig = figure(7);
-    mycolormap = customcolormap(linspace(0,1,11), {'#68011d','#b5172f','#d75f4e','#f7a580','#fedbc9','#f5f9f3','#d5e2f0','#93c5dc','#4295c1','#2265ad','#062e61'});
-    colormap(mycolormap);
-%     axis off;
-
-%     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
-%     zlim([0 5E-5]);
-    pColorCenteredNonGrid(gca,lambdas,Ts,fracWidthsvec,1E-6,1E-6);
-%     caxis([0 5E-5]);
-caxis([0 1E-5]);
-
-    hold on;
-    plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
+                fifth_fig = figure(5);
+    %     figure_title_dependent_var = ['cloudSD_y'];
+            hold on;
+    for j = 1:length(RunDatas)
+        plot( lambdaCell{j}./TCell{j}, maxOD{j}, 'o-',...
+            'LineWidth', options.LineWidth,...
+            'Color',cmap(j,:));
+%         set(gca,'yscale','log');
+    end
+            xline(2, 'r--',...
+            'LineWidth', options.LineWidth);
     hold off;
-%     xlim([0 0.03]);
-        
-    title('cloudSD_y');
-%     title(['width at ' num2str(frac) ' maximum (summedODy, au)']);
-    colorbar;
-    ylabel('T''');
-    xlabel('Lambda');
     
+    save('D:\QCQKR\MATfiles\piezo915disorder','lambdaCell','TCell','peakDensities');
     
     options.yLabel = figure_title_dependent_var;
     options.xLabel = '915 Depth [E_R]';
     [plot_title, fig_filename] = ...
         setupPlotWrap( ...
             first_fig, ...
+            options, ...
+            RunDatas, ...
+            figure_title_dependent_var, ...
+            varied_variable_name, ...
+            legendvars, ...
+            varargin);
+        
+    options.yLabel = second_fig_dependent_var;
+    options.xLabel = '915 Depth [E_R]';
+    [plot_title, fig_filename] = ...
+        setupPlotWrap( ...
+            second_fig, ...
+            options, ...
+            RunDatas, ...
+            figure_title_dependent_var, ...
+            varied_variable_name, ...
+            legendvars, ...
+            varargin);
+        
+            options.yLabel = 'Atom Number';
+    options.xLabel = '915 Depth [E_R]';
+    [plot_title, fig_filename] = ...
+        setupPlotWrap( ...
+            third_fig, ...
+            options, ...
+            RunDatas, ...
+            figure_title_dependent_var, ...
+            varied_variable_name, ...
+            legendvars, ...
+            varargin);
+        
+    options.yLabel = 'Raw Peak 3D Density';
+    options.xLabel = '$\lambda / T$';
+    
+    [plot_title, fig_filename] = ...
+        setupPlotWrap( ...
+            fourth_fig, ...
+            options, ...
+            RunDatas, ...
+            figure_title_dependent_var, ...
+            varied_variable_name, ...
+            legendvars, ...
+            varargin);
+        
+            options.yLabel = 'Raw Max OD';
+    options.xLabel = '$\lambda / T$';
+    
+    [plot_title, fig_filename] = ...
+        setupPlotWrap( ...
+            fifth_fig, ...
             options, ...
             RunDatas, ...
             figure_title_dependent_var, ...

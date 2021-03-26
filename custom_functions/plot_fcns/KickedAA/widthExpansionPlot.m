@@ -1,4 +1,4 @@
-function [fig_handle, fig_filename] = freqDisorder2dwidthpcolor(RunDatas,RunVars,options)
+function [fig_handle, fig_filename] = widthExpansionPlot(RunDatas,RunVars,options)
 % PLOTFUNCTIONTEMPLATE makes a plot from the given RunDatas against the
 % dependent variable {varied_variable_name}. Optional arguments are passed
 % to setupPlot, which automatically puts axes and a legend on the plot,
@@ -59,8 +59,8 @@ varargin = {RunVars.heldvars_all};
     end
 
     close all;
-    first_fig = figure(1);
-    cmap = colormap( jet( length(RunDatas) ) );
+    
+    cmap = colormap( jet( size(avg_atomdata{j}, 2) ) );
 
     
    
@@ -69,8 +69,12 @@ varargin = {RunVars.heldvars_all};
     lambdas = zeros(0);
     Ts = zeros(0);
     IPRvec = zeros(0);
-    fracWidthsvec = zeros(0);
-    Widthsvec = zeros(0);
+    widthsMatrix = zeros(length(RunDatas),size(avg_atomdata{j}, 2));
+    lattHoldMatrix = zeros(length(RunDatas),size(avg_atomdata{j}, 2));
+    lat915Matrix = zeros(length(RunDatas),size(avg_atomdata{j}, 2));
+    lambdaMatrix = zeros(length(RunDatas),size(avg_atomdata{j}, 2));
+    TsMatrix = zeros(length(RunDatas),size(avg_atomdata{j}, 2));
+    diffusion_fits = zeros(length(RunDatas),2);
     for j = 1:length(RunDatas)
         
         % Here I compute each fracWidth from the repeat-averaged densities
@@ -131,7 +135,7 @@ varargin = {RunVars.heldvars_all};
             
             T_us = RunDatas{j}.ncVars.T;
             lambdas(length(lambdas)+1)  = Delta*tau/J;
-            Ts(length(Ts)+1) = T_us*J/hbar_Er1064_us;
+            TsMatrix(j,ii) = T_us*J/hbar_Er1064_us;
             Depths915{j}(ii) = s2;
             max_ratio{j}(ii) = mean(abs(avg_atomdata{j}(ii).summedODy),'all')/max(abs(avg_atomdata{j}(ii).summedODy),[],'all');
             [width, center] = fracWidth( X{j}, avg_atomdata{j}(ii).summedODy, frac,'PlotWidth',0);
@@ -141,107 +145,122 @@ varargin = {RunVars.heldvars_all};
 %                 fracWidths{j}(ii) = avg_atomdata{j}(ii).cloudSD_y;
 %             end
             
-            fracWidths{j}(ii) = width;
-            Widths{j}(ii) = avg_atomdata{j}(ii).cloudSD_y;
-            
-            if (Widths{j}(ii)  > 6E-5)
-                Widths{j}(ii) = NaN;
+%             fracWidths{j}(ii) = width;
+            widthsMatrix(j,ii) = avg_atomdata{j}(ii).cloudSD_y;
+%             
+            if (widthsMatrix(j,ii)  > 6E-5)
+                widthsMatrix(j,ii) = NaN;
             end
             
-            
-            if (fracWidths{j}(ii)  > 35)
-                fracWidths{j}(ii) = NaN;
-            end
-              
-%               fracWidths{j}(ii) = avg_atomdata{j}(ii).cloudSD_y;
-              
-              %%%Various conditions to eliminate bad runs
-              
-%               if (fracWidths{j}(ii) > 6E-5)
-%                   fracWidths{j}(ii) = NaN;
-%               end
-
-%                 if(avg_atomdata{j}(ii).atomNumber < 1E4)
-%                     fracWidths{j}(ii) = NaN;
-%                 end
-              
-            
+            lattHoldMatrix(j,ii) = atomdata(ii).vars.LatticeHold;
+            lat915Matrix(j,ii) = s2;
+            lambdaMatrix(j,ii) = Delta*tau/J;
+                      
         end
-        Widths{j} = smoothdata(Widths{j},'movmean',2);
-        Widthsvec = [Widthsvec Widths{j}];
-        
-        fracWidths{j} = smoothdata(fracWidths{j},'movmean',2);
-        fracWidthsvec = [fracWidthsvec fracWidths{j}];
+%         fracWidths{j} = smoothdata(fracWidths{j},'movmean',2);
+%         fracWidthsvec = [fracWidthsvec fracWidths{j}];
+%           widthsMatrix(:,j) = smoothdata(widthsMatrix(:,j),'movmean',2);
+          
+    end
+    
+    %take the average initial width
+    avg_initial_width = mean(widthsMatrix(1,:));
+    diffusion_exponent = zeros(length(RunDatas),1);
+    first_to_use = 4;
+    for j = 1:size(avg_atomdata{1}, 2)
+                  %smoothdata a bit
+%           widthsMatrix(:,j) = smoothdata(widthsMatrix(:,j),'movmean',2);
+          
+          %fit to linearize with log log and then fit
+          diffusion_fits(j,:) = polyfit(log(lattHoldMatrix(first_to_use:end,j)),log(widthsMatrix(first_to_use:end,j)),1);
+
+            %try linear regression with constant starting width
+%             diffusion_exponent(j) = log(lattHoldMatrix(first_to_use:end,j))\log(widthsMatrix(first_to_use:end,j)./avg_initial_width);
     end
     %%% End Data Manipulation %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
+    %%%%now try the fitting analysis
+    
     % Then plot things, just looping over the values I computed above.
     
-    figure_title_dependent_var = ['width at ' num2str(frac) ' maximum (summedODy, au)'];
-%     figure_title_dependent_var = ['cloudSD_y'];
-    for j = 1:length(RunDatas)
-        plot( Depths915{j}, fracWidths{j}, 'o-',...
+    first_fig = figure(1);
+%     figure_title_dependent_var = ['width at ' num2str(frac) ' maximum (summedODy, au)'];
+    figure_title_dependent_var = ['cloudSD_y'];
+            hold on;
+    for j = 1:size(avg_atomdata{1}, 2)
+%         if (
+        plot(lattHoldMatrix(:,j), widthsMatrix(:,j),  'o-',...
             'LineWidth', options.LineWidth,...
             'Color',cmap(j,:));
 %         set(gca,'yscale','log');
-        hold on;
+
+    end
+        for j = 1:size(avg_atomdata{1},2)
+                plot(lattHoldMatrix(first_to_use:end,j), exp(diffusion_fits(j,2)).*(lattHoldMatrix(first_to_use:end,j).^(diffusion_fits(j,1))),  '--',...
+            'LineWidth', options.LineWidth,...
+            'Color',cmap(j,:));
     end
     hold off;
     
-        sec_fig = figure(2);
-    scatter3(lambdas,Ts,Widthsvec);
-    xlabel('Lambda');
-    ylabel('T''');
-    title('cloudSD_y');
-%     title(['width at ' num2str(frac) ' maximum (summedODy, au)']);
+    sec_fig = figure(2);
+%     figure_title_dependent_var = ['width at ' num2str(frac) ' maximum (summedODy, au)'];
+    figure_title_dependent_var = ['cloudSD_y'];
+    for j = 1:size(avg_atomdata{1}, 2)
+        plot(lattHoldMatrix(:,j), widthsMatrix(:,j),  'o-',...
+            'LineWidth', options.LineWidth,...
+            'Color',cmap(j,:));
+        set(gca,'yscale','log');
+        set(gca,'xscale','log');
+        hold on;
+    end
+    hold off;    
+    
+    
+    third_fig = figure(3);
+%     figure_title_dependent_var = ['width at ' num2str(frac) ' maximum (summedODy, au)'];
+    figure_title_dependent_var = ['cloudSD_y'];
     hold on;
-    plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
-    hold off;
-%     xlim([0,2*max(Ts)]);
-%     ylim([0,max(Ts)]);
-    
-    sixth_fig = figure(6);
-%     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
-    pColorCenteredNonGrid(gca,lambdas,Ts,Widthsvec,1E-6,1E-6);
-    
-    zlim([0 5E-5]);
-    hold on;
-    plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
-    hold off;
-%     xlim([0 0.02]);
-        xlabel('Lambda');
-    ylabel('T''');
-    title('cloudSD_y');
-%     title(['width at ' num2str(frac) ' maximum (summedODy, au)']);
-    colorbar;
-    
-    %try different colormap 
-            sev_fig = figure(7);
-    mycolormap = customcolormap(linspace(0,1,11), {'#68011d','#b5172f','#d75f4e','#f7a580','#fedbc9','#f5f9f3','#d5e2f0','#93c5dc','#4295c1','#2265ad','#062e61'});
-    colormap(mycolormap);
-%     axis off;
+    for j = 1:size(avg_atomdata{1}, 2)
+        plot(lattHoldMatrix(:,j), widthsMatrix(:,j),  'o-',...
+            'LineWidth', options.LineWidth,...
+            'Color',cmap(j,:));
 
-%     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
-%     zlim([0 5E-5]);
-    pColorCenteredNonGrid(gca,lambdas,Ts,fracWidthsvec,1E-6,1E-6);
-%     caxis([0 5E-5]);
-caxis([0 1E-5]);
-
-    hold on;
-    plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
-    hold off;
-%     xlim([0 0.03]);
+        set(gca,'yscale','log');
+        set(gca,'xscale','log');
         
-    title('cloudSD_y');
-%     title(['width at ' num2str(frac) ' maximum (summedODy, au)']);
-    colorbar;
-    ylabel('T''');
-    xlabel('Lambda');
+    end
+    for j = 1:size(avg_atomdata{1},2)
+                plot(lattHoldMatrix(first_to_use:end,j), exp(diffusion_fits(j,2)).*(lattHoldMatrix(first_to_use:end,j).^(diffusion_fits(j,1))),  '--',...
+            'LineWidth', options.LineWidth,...
+            'Color',cmap(j,:));
+    end
+    hold off; 
+    
+    fourth_fig = figure(4);
+    hold on;
+    yyaxis left;
+    plot(lambdaMatrix(1,:),diffusion_fits(:,1), 'o-',...
+            'LineWidth', options.LineWidth);
+        ylim([0,0.8]);
+        ylabel('Diffusion Param')
+        yyaxis right;
+    plot(lambdaMatrix(6,:),0.7.*widthsMatrix(6,:)./widthsMatrix(6,1), 'o-',...
+            'LineWidth', options.LineWidth);
+        ylabel('Cloud SDy');
+        ylim([0,0.8]);
+        xline(TsMatrix(1)*2, 'r--',...
+            'LineWidth', options.LineWidth);
+        xlabel('Lambda')
+        hold off;
+        legend({'Diffusion','SDy','$\lambda = 2T$'},'interpreter','latex');
+    
+    
+%     
     
     
     options.yLabel = figure_title_dependent_var;
-    options.xLabel = '915 Depth [E_R]';
+    options.xLabel = 'LatticeHold';
     [plot_title, fig_filename] = ...
         setupPlotWrap( ...
             first_fig, ...
@@ -251,6 +270,47 @@ caxis([0 1E-5]);
             varied_variable_name, ...
             legendvars, ...
             varargin);
+  
+        
+    options.yLabel = figure_title_dependent_var;
+    options.xLabel = 'LatticeHold';
+    [plot_title, fig_filename] = ...
+        setupPlotWrap( ...
+            sec_fig, ...
+            options, ...
+            RunDatas, ...
+            figure_title_dependent_var, ...
+            varied_variable_name, ...
+            legendvars, ...
+            varargin);
+        
+        
+    options.yLabel = figure_title_dependent_var;
+    options.xLabel = 'LatticeHold';
+    [plot_title, fig_filename] = ...
+        setupPlotWrap( ...
+            third_fig, ...
+            options, ...
+            RunDatas, ...
+            figure_title_dependent_var, ...
+            varied_variable_name, ...
+            legendvars, ...
+            varargin);
+        
+%     options.yLabel = 'Diffusion Parameter';
+%     options.xLabel = 'Lambda';
+%     options.LegendTitle = " ";
+% %     options.LegendLabels = {'Data','$\lambda = 2 T$'};
+%     options.LegendLabels = {'$\lambda = 2 T$'};
+%     [plot_title, fig_filename] = ...
+%         setupPlotWrap( ...
+%             fourth_fig, ...
+%             options, ...
+%             RunDatas, ...
+%             figure_title_dependent_var, ...
+%             varied_variable_name, ...
+%             legendvars, ...
+%             varargin);
         
     function depth = vva_to_voltage(vva)
         %take out the non-linearity
