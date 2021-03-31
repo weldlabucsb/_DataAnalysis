@@ -23,11 +23,11 @@ arguments
     %
     options.LegendLabels = []
     options.LegendTitle string = ""
-    options.Position (1,4) double = [53, 183, 1331, 829];
+    options.Position (1,4) double = [1, 41, 2560, 1323];
     %
     options.PlotTitle = ""
     %
-    options.xLim (1,2) double = [0,0]
+    options.xLim (1,2) double = [0,800]
     options.yLim (1,2) double
     %
     options.PlotPadding = 15;
@@ -78,6 +78,14 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
     cmap = colormap( jet( size(ad, 2) ) );
     
     dim = ceil( sqrt( N ) );
+    
+    if dim * (dim-1) >= N
+        dimx = dim;
+        dimy = dim - 1;
+    else
+        dimx = dim;
+        dimy = dim;
+    end
 
     options.SubplotTitle = 1;
     options.SkipLegend = 1;
@@ -90,7 +98,7 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
 
     for ii = 1:N
         
-        subplot( dim, dim, ii  );
+        subplot( dimy, dimx, ii  );
         
         plot(x, density(ii,:),'LineWidth',1.5);
         Fit{ii} = dual_gauss( x, density(ii,:) );
@@ -98,6 +106,10 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
         widths(ii).fit = Fit{ii};
         widths(ii).thinWidth = min( Fit{ii}.sigma1, Fit{ii}.sigma2 );
         widths(ii).wideWidth = max( Fit{ii}.sigma1, Fit{ii}.sigma2 );
+        
+        xlim(options.xLim);
+        
+        title(['915VVA = ' num2str(varied_var_values(ii))],'Interpreter','latex')
         
     end
 
