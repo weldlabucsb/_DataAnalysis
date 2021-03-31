@@ -1,6 +1,7 @@
 function [fig_handle, fig_filename, widths] = dualGaussPlot(RunData,RunVars,options)
-%% DUALGAUSSPLOT(RunData, RunVars, options) plots a two-gaussian fit to the localized and delocalized fractions of an expansion distribution.
-% Returns 
+%% DUALGAUSSPLOT(RunData, RunVars, options) [one plot per run]
+% Plots a two-gaussian fit to the localized and delocalized fractions of an expansion distribution.
+% Returns an extra output, a struct of the fits and the widths of each
 
 arguments
     RunData
