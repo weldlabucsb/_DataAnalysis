@@ -27,7 +27,7 @@ function [Y, Y1, Y2] = dual_gauss_wide_oort(x,y,options)
     peakFraction1 = options.PeakFraction1;
     plotFit = options.PlotFit;
 
-    [sigmaGuess1, centerGuess1] = frac_width(x,y,peakFraction1);
+    [sigmaGuess1, centerGuess1] = fracWidth(x,y,peakFraction1);
     
     sigmaGuess2 = round(size(y,2)/2);
     centerGuess2 = 0;
