@@ -28,7 +28,7 @@ function [Y,Y2] = dual_gauss_trim_fit(x, y, options)
     offsetGuess = min(y(~excludedPoints));
     
     [sigmaGuess, centerGuess] = ...
-        frac_width(x(~excludedPoints),y(~excludedPoints),widthFraction);
+        fracWidth(x(~excludedPoints),y(~excludedPoints),widthFraction);
 
     % Set up fittype and options.
     ft = fittype( 'a1 * exp( - (x - b1)^2/(2*c1^2) ) + d1', 'independent', 'x', 'dependent', 'y' );
@@ -59,7 +59,7 @@ function [Y,Y2] = dual_gauss_trim_fit(x, y, options)
     ampGuess = max(y(~excludedPoints));
     
     [sigmaGuess, centerGuess] = ...
-        frac_width(x(~excludedPoints),y(~excludedPoints),widthFraction);
+        fracWidth(x(~excludedPoints),y(~excludedPoints),widthFraction);
 
     % Set up fittype and options.
     ft = fittype( 'a1 * exp( - (x - b1)^2/(2*c1^2) )', 'independent', 'x', 'dependent', 'y' );

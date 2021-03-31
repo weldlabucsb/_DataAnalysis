@@ -39,7 +39,10 @@ end
         'Position', options.Position,...
         'PlotTitle', options.PlotTitle,...
         'yLim',options.yLim,...
-        'xLim',options.xLim);
+        'xLim',options.xLim,...
+        'SubplotTitle',options.SubplotTitle,...
+        'SkipLegend',options.SkipLegend,...
+        'SkipLabels',options.SkipLabels);
     
 end
 
@@ -80,5 +83,14 @@ function options = replaceMissingOptions(options)
     end
     if ~isfield(options,'PlotPadding')
         options.PlotPadding = 0;
+    end
+    if ~isfield(options,'SubplotTitle')
+       options.SubplotTitle = 0; 
+    end
+    if ~isfield(options,'SkipLegend')
+       options.SkipLegend = 0;
+    end
+    if ~isfield(options,'SkipLabels')
+        options.SkipLabels = 0;
     end
 end

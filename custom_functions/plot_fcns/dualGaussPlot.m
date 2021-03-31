@@ -1,9 +1,9 @@
-function [fig_handle, fig_filename] = dualGaussPlot(RunData,RunVars,options)
+function [fig_handle, fig_filename, widths] = dualGaussPlot(RunData,RunVars,options)
 %% DUALGAUSSPLOT(RunData, RunVars, options) plots a two-gaussian fit to the localized and delocalized fractions of an expansion distribution.
 % Returns 
 
 arguments
-    RunDatas
+    RunData
     RunVars
 end
 arguments
@@ -34,13 +34,13 @@ arguments
     %
 end
 
-varied_variable_name = RunVars.varied_var;
-legendvars = RunVars.heldvars_each;
-varargin = {RunVars.heldvars_all};
+RunDatas = cellWrap(RunData);
 
 %%
 
-RunDatas = cellWrap(RunDatas);
+varied_variable_name = RunVars.varied_var;
+legendvars = RunVars.varied_var;
+varargin = {RunVars.heldvars_each};
 
 %%
 
@@ -60,19 +60,51 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
 
 %% Avg Atomdata entries for same varied_variable_value
 
-for j = 1:length(RunDatas)
-    [avg_ads{j}, varied_var_values{j}] = avgRepeats(...
-        RunDatas{j}, varied_variable_name, {plottedDensity, SD});
-end
+    [ad, varied_var_values] = avgRepeats(...
+            RunData, varied_variable_name, options.PlottedDensity);
+        
+    N = length(ad);
+    
+    for ii = 1:N
+       density(ii,:) = [ad(ii).(options.PlottedDensity)]; 
+    end
 
 %%
 
-cmap = colormap( jet( size(avg_atomdata{j}, 2) ) );
+    fig_handle = figure();
+
+    figure_title_dependent_var = options.PlottedDensity;
+
+    cmap = colormap( jet( size(ad, 2) ) );
+    
+    dim = ceil( sqrt( N ) );
+
+    options.SubplotTitle = 1;
+    options.SkipLegend = 1;
+    options.SkipLabels = 1;
+
+%%
+    x = ( 1:length(density(1,:)) ) * xConvert;
+    
+%%
+
+    for ii = 1:N
+        
+        subplot( dim, dim, ii  );
+        
+        plot(x, density(ii,:),'LineWidth',1.5);
+        Fit{ii} = dual_gauss( x, density(ii,:) );
+        
+        widths(ii).fit = Fit{ii};
+        widths(ii).thinWidth = min( Fit{ii}.sigma1, Fit{ii}.sigma2 );
+        widths(ii).wideWidth = max( Fit{ii}.sigma1, Fit{ii}.sigma2 );
+        
+    end
 
 %%
 
-setupPlotWrap( ...
-    first_fig, ...
+[~, fig_filename] = setupPlotWrap( ...
+    fig_handle, ...
     options, ...
     RunDatas, ...
     figure_title_dependent_var, ...
