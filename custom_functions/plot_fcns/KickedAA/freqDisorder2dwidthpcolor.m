@@ -224,9 +224,9 @@ varargin = {RunVars.heldvars_all};
 
 %     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
 %     zlim([0 5E-5]);
-    pColorCenteredNonGrid(gca,lambdas,Ts,fracWidthsvec,1E-6,1E-6);
-%     caxis([0 5E-5]);
-caxis([0 1E-5]);
+    pColorCenteredNonGrid(gca,lambdas,Ts,Widthsvec,1E-6,1E-6);
+    caxis([0 5E-5]);
+% caxis([0 1E-5]);
 
     hold on;
     plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);

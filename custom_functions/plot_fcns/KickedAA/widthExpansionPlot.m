@@ -60,7 +60,7 @@ varargin = {RunVars.heldvars_all};
 
     close all;
     
-    cmap = colormap( jet( size(avg_atomdata{j}, 2) ) );
+    cmap = colormap( jet( size(avg_atomdata{1}, 2) ) );
 
     
    
@@ -237,21 +237,66 @@ varargin = {RunVars.heldvars_all};
     end
     hold off; 
     
+    if(1)
+            point_types = repmat({'o','^','s','d','p'},1,3);
+            paper_fig = figure(27);
+%             cmap = colormap( hot( size(avg_atomdata{1}, 2)+8 ) );
+            cmap = colormap(cool(size(avg_atomdata{1},2)));
+            mycolormap = customcolormap(linspace(0,1,11), {'#68011d','#b5172f','#d75f4e','#f7a580','#fedbc9','#f5f9f3','#d5e2f0','#93c5dc','#4295c1','#2265ad','#062e61'});
+            cmap = colormap(mycolormap);
+            start_point = 3;
+            caxis([min(diffusion_fits(:,1)), max(diffusion_fits(:,1))]);
+        %     figure_title_dependent_var = ['width at ' num2str(frac) ' maximum (summedODy, au)'];
+            figure_title_dependent_var = ['cloudSD_y'];
+            box on;
+            hold on;
+            for j = [1 2:2:size(avg_atomdata{1}, 2)]
+                climits = caxis;
+                rgb = interp1(linspace(climits(1), climits(2), size(cmap, 1)), ...
+                      cmap, ...
+                      diffusion_fits(j,1));
+                currPlot = scatter(lattHoldMatrix(start_point:end,j)./1E3, 1E6.*widthsMatrix(start_point:end,j),  point_types{j},...
+                    'LineWidth', options.LineWidth,...
+                    'markerEdgeColor',rgb,'markerFaceColor',rgb,'markerfacealpha',0.4);
+                
+                set(gca,'yscale','log');
+                set(gca,'xscale','log');
+%                 xlabel('\lambda');
+%                 alpha 0.3;
+%                 set(currPlot,'markerfacecolor',[rgb 0.8]);
+
+            end
+            for j = [1 2:2:size(avg_atomdata{1},2)]
+                climits = caxis;
+                rgb = interp1(linspace(climits(1), climits(2), size(cmap, 1)), ...
+                      cmap, ...
+                      diffusion_fits(j,1));
+                        plot(lattHoldMatrix(first_to_use:end,j)./1E3, 1E6.*exp(diffusion_fits(j,2)).*(lattHoldMatrix(first_to_use:end,j).^(diffusion_fits(j,1))),  '--',...
+                    'LineWidth', 2,...
+                    'Color',rgb);
+            end
+            hold off; 
+%             set(gcf,'interpreter','latex');
+            set(gca,'fontsize',12);
+            xlabel('Lattice Hold (s)');
+            ylabel('BEC Width ({\mu}m)');
+    end
+    
     fourth_fig = figure(4);
     hold on;
     yyaxis left;
-    plot(lambdaMatrix(1,:),diffusion_fits(:,1), 'o-',...
+    plot(lambdaMatrix(1,:)./TsMatrix(1,:),diffusion_fits(:,1), 'o-',...
             'LineWidth', options.LineWidth);
         ylim([0,0.8]);
         ylabel('Diffusion Param')
         yyaxis right;
-    plot(lambdaMatrix(6,:),0.7.*widthsMatrix(6,:)./widthsMatrix(6,1), 'o-',...
+    plot(lambdaMatrix(6,:)./TsMatrix(6,:),0.7.*widthsMatrix(6,:)./widthsMatrix(6,1), 'o-',...
             'LineWidth', options.LineWidth);
-        ylabel('Cloud SDy');
+        ylabel('Cloud SDy, \mu m');
         ylim([0,0.8]);
-        xline(TsMatrix(1)*2, 'r--',...
+        xline(2, 'r--',...
             'LineWidth', options.LineWidth);
-        xlabel('Lambda')
+        xlabel('Lambda/T','interpreter','latex')
         hold off;
         legend({'Diffusion','SDy','$\lambda = 2T$'},'interpreter','latex');
     
