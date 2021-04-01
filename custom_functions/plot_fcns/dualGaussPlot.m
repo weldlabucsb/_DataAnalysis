@@ -1,4 +1,4 @@
-function [fig_handle, fig_filename, widths] = dualGaussPlot(RunData,RunVars,options)
+function [fig_handle, fig_filename, widths, fits] = dualGaussPlot(RunData,RunVars,options)
 %% DUALGAUSSPLOT(RunData, RunVars, options) [one plot per run]
 % Plots a two-gaussian fit to the localized and delocalized fractions of an expansion distribution.
 % Returns an extra output, a struct of the fits and the widths of each
@@ -107,11 +107,12 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
         plot(x, y,'LineWidth',1.5);
         
         try
-            Fit{ii} = dualGaussAutoFit( x, y );
+            [fits(ii).netFit, fits(ii).fit1, fits(ii).fit2] = ...
+                dualGaussManualFit( x, y );
 
-            widths(ii).fit = Fit{ii};
-            widths(ii).thinWidth = min( Fit{ii}.sigma1, Fit{ii}.sigma2 );
-            widths(ii).wideWidth = max( Fit{ii}.sigma1, Fit{ii}.sigma2 );
+%             widths(ii).fit = Fit{ii};
+            widths(ii).thinWidth = min( fits(ii).fit1.sigma1, fits(ii).fit2.sigma2 );
+            widths(ii).wideWidth = max( fits(ii).fit1.sigma1, fits(ii).fit2.sigma2 );
             
         catch
             disp(strcat(...
