@@ -33,15 +33,23 @@ if ~contains(legendvars,varied_var) % handle case for "all" legendvars
     
     % stick the values together into proper legend labels.
     for j = 1:length(RunDatas)
-        labels(j) = strcat(RunDatas{j}.RunNumber, ": ");
+        thisRunNumber = strrep(RunDatas{j}.RunNumber,'-','');
+        labels(j) = strcat( thisRunNumber , ": " );
         
         thisvarval = num2str(legendvals{j}{1});
-        labels(j) = strcat(labels(j), thisvarval, ", " );
-        for k = 2:(length(legendvars)-1)
-            thisvarval = num2str( legendvals{j}{k} );
-            labels(j) = strcat(labels(j), thisvarval, ", " );
+        labels(j) = strcat(labels(j), thisvarval );
+        
+        if length(legendvars) > 1
+            
+            labels(j) = strcat(labels(j), ", ");
+        
+            for k = 2:(length(legendvars)-1)
+                thisvarval = num2str( legendvals{j}{k} );
+                labels(j) = strcat(labels(j), thisvarval, ", " );
+            end
+        
+            labels(j) = strcat(labels(j), num2str( legendvals{j}{end} ));
         end
-        labels(j) = strcat(labels(j), num2str( legendvals{j}{end} ));
     end
     
 else % handle case for "each" legendvars

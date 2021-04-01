@@ -1,12 +1,30 @@
-function saveFigure(figure_handle, filename, varargin)
+function saveFigure(figure_handle, filename, varargin, options)
 % SAVE_FIGURE saves the figure specified by figure_handle to the location
 % specified by filename. If a third argument is provided, it is treated as
 % the directory to which the figure should be saved.
+
+arguments
+    figure_handle
+    filename
+end
+arguments (Repeating)
+    varargin
+end
+arguments
+    options.SaveFigFile (1,1) logical = 0
+    options.OpenDir (1,1) logical = 0
+end
 
 if ~isfolder( varargin{1} )
     disp(strcat(...
         "Output folder at ",varargin{1}, " does not exist. Creating directory."));
     mkdir(varargin{1});
+end
+
+if isempty(varargin)
+    open_flag = 0;
+else 
+    open_flag = 1;
 end
 
 % shove things into cells if they aren't already to make the loop work.
@@ -29,6 +47,35 @@ for j = 1:N_figures
     end
     
     saveas( figure_handle{j}, filename{j} );
+end
+
+if options.SaveFigFile
+    
+    for j = 1:N_figures
+        
+        disp(strcat("Saving ", num2str(j), "/", num2str(N_figures) ," figure files."));
+
+        filename{j} = strrep(filename{j},".png",".fig");
+
+        saveas( figure_handle{j}, filename{j} );
+    
+    end
+    
+end
+
+if options.OpenDir
+    
+    if open_flag
+        ofile = varargin{1};
+    else
+        ofile = pwd;
+    end
+    
+    if ispc
+        winopen(ofile);
+    end
+    
+    
 end
 
 end

@@ -1,6 +1,6 @@
 function plot_title_out = plotTitle(RunDatas,plotted_dependent_var,varied_variable_name,varargin)
-% PLOTTITLE outputs string: "{plotted_depednent_var} vs
-%   {varied variable name}"
+% PLOTTITLE(RunDatas,plotted_dependent_var,varied_variable_name,varargin)
+% outputs string: "{plotted_depednent_var} vs {varied variable name}"
 %
 %   plotted_dependent_var is a string describing the y-axis: example,
 %   "SummedODy".
