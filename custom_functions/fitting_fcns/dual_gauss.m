@@ -23,6 +23,7 @@ function [Y, Y1, Y2] = dual_gauss(x,y,options)
         options.PeakFraction1 (1,1) double = 0.96
         options.PeakFraction2 (1,1) double = 0.05
         options.PlotFit (1,1) logical = 1
+        options.PlotComponents (1,1) logical = 0
     end
 
     peakFraction1 = options.PeakFraction1;
@@ -44,8 +45,10 @@ function [Y, Y1, Y2] = dual_gauss(x,y,options)
     if plotFit
         hold on
         plot(x,Y(x),'--','Color',[5 5 5]/255,'LineWidth',2);
-        plot(x,Y1,'-.','Color',[50 50 50]/255,'LineWidth',1.5);
-        plot(x,Y2,'-.','Color',[80 80 80]/255,'LineWidth',1.5);
+        if options.PlotComponents
+            plot(x,Y1,'-.','Color',[50 50 50]/255,'LineWidth',1.5);
+            plot(x,Y2,'-.','Color',[80 80 80]/255,'LineWidth',1.5);
+        end
         hold off
     end
 

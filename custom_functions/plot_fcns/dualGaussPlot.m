@@ -33,6 +33,7 @@ arguments
     %
     options.PlotPadding = 15;
     %
+    options.SmoothWindow = 5;
 end
 
 RunDatas = cellWrap(RunData);
@@ -101,17 +102,26 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
         
         subplot( dimy, dimx, ii  );
         
-        plot(x, density(ii,:),'LineWidth',1.5);
-        Fit{ii} = dual_gauss( x, density(ii,:) );
+        y = movmean( density(ii,:), options.SmoothWindow );
         
-        widths(ii).fit = Fit{ii};
-        widths(ii).thinWidth = min( Fit{ii}.sigma1, Fit{ii}.sigma2 );
-        widths(ii).wideWidth = max( Fit{ii}.sigma1, Fit{ii}.sigma2 );
+        plot(x, y,'LineWidth',1.5);
         
-        xlim(options.xLim);
+        try
+            Fit{ii} = dual_gauss( x, y );
+
+            widths(ii).fit = Fit{ii};
+            widths(ii).thinWidth = min( Fit{ii}.sigma1, Fit{ii}.sigma2 );
+            widths(ii).wideWidth = max( Fit{ii}.sigma1, Fit{ii}.sigma2 );
+            
+        catch
+            disp(strcat(...
+                "Fit failed on entry ", num2str(ii), "/", num2str(N) ...
+            ));
+        end
         
         title(['915VVA = ' num2str(varied_var_values(ii))],'Interpreter','latex')
         
+        xlim(options.xLim);
     end
 
 %%
