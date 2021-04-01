@@ -24,18 +24,26 @@ function [Y, Y1, Y2] = dualGaussManualFit(x,y,options)
         options.PeakFraction2 (1,1) double = 0.05
         options.PlotFit (1,1) logical = 1
         options.PlotComponents (1,1) logical = 0
+        options.OriginalFigureHandle = []
+        options.MaximumAmplitude (1,1) double = 10000
+    end
+    
+    if ~isempty(options.OriginalFigureHandle)
+        h = options.OriginalFigureHandle;
+        tag = true;
     end
     
     %% User-specified guesses
     % ask user for estimate of the peak width, height
-    figure();
+    thisfig = figure();
     plot(x,y,'LineWidth',1.5);
     roi = drawrectangle();
     
     %% Fit first peak
     
     [Y1,Y2] = dualGaussTrimFit(x, y,...
-        'peakROI', roi );
+        'peakROI', roi, ...
+        'MaximumAmplitude', options.MaximumAmplitude);
     
     Y1p = Y1.A1 * exp( - ( (x - Y1.x1)./Y1.sigma1 ).^2 / 2 );
     Y2p = Y2.A2 * exp( - ( (x - Y2.x2)./Y2.sigma2 ).^2 / 2 );
@@ -43,6 +51,12 @@ function [Y, Y1, Y2] = dualGaussManualFit(x,y,options)
     Y = Y1p + Y2p + Y1.c1;
        
     %% Plotting
+    
+    close(thisfig);
+    
+    if tag
+        figure(h);  
+    end
     
     if options.PlotFit
         hold on

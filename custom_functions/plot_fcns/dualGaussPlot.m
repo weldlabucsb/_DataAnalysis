@@ -1,4 +1,4 @@
-function [fig_handle, fig_filename, widths, fits] = dualGaussPlot(RunData,RunVars,options)
+function [fig_handle, fig_filename, plot_title, widths, fits] = dualGaussPlot(RunData,RunVars,options)
 %% DUALGAUSSPLOT(RunData, RunVars, options) [one plot per run]
 % Plots a two-gaussian fit to the localized and delocalized fractions of an expansion distribution.
 % Returns an extra output, a struct of the fits and the widths of each
@@ -108,7 +108,7 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
         
         try
             [fits(ii).netFit, fits(ii).fit1, fits(ii).fit2] = ...
-                dualGaussManualFit( x, y );
+                dualGaussManualFit( x, y, 'OriginalFigureHandle', fig_handle );
 
 %             widths(ii).fit = Fit{ii};
             widths(ii).thinWidth = min( fits(ii).fit1.sigma1, fits(ii).fit2.sigma2 );
@@ -127,7 +127,7 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
 
 %%
 
-[~, fig_filename] = setupPlotWrap( ...
+[plot_title, fig_filename] = setupPlotWrap( ...
     fig_handle, ...
     options, ...
     RunDatas, ...

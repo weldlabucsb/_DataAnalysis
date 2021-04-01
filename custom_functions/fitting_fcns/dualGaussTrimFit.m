@@ -10,6 +10,7 @@ function [Y1,Y2] = dualGaussTrimFit(x, y, options)
         options.ExcludeDomain logical = 0
         options.WidthFraction double = 0.65
         options.peakROI = []
+        options.MaximumAmplitude (1,1) double = Inf
 %         options.NarrowAmplitudeGuess = []
 %         options.NarrowSigmaGuess = []
 %         options.NarrowOffsetGuess = []
@@ -77,13 +78,13 @@ function [Y1,Y2] = dualGaussTrimFit(x, y, options)
     opts = fitoptions( 'Method', 'NonlinearLeastSquares' );
     opts.Display = 'Off';
     opts.Lower = [0 -Inf 0 -Inf];
-    opts.Upper = [Inf Inf Inf Inf];
+    opts.Upper = [options.MaximumAmplitude Inf Inf Inf];
     opts.Robust = 'Bisquare';
     opts.StartPoint = [ampGuess offsetGuess sigmaGuess centerGuess];
     opts.Exclude = excludedPoints;
 
     % Fit model to data.
-    [Y1, gof] = fit( xData, yData, ft, opts );
+    [Y1, ~] = fit( xData, yData, ft, opts );
     
     if options.PlotFit
         h = plot( Y1, xData, yData);
@@ -109,12 +110,12 @@ function [Y1,Y2] = dualGaussTrimFit(x, y, options)
     opts.Display = 'Off';
     opts.StartPoint = [ampGuess sigmaGuess centerGuess];
     opts.Lower = [0 -Inf 0];
-    opts.Upper = [Inf Inf Inf];
+    opts.Upper = [options.MaximumAmplitude Inf Inf];
     opts.Robust = 'Bisquare';
     opts.Exclude = excludedPoints;
 
     % Fit model to data.
-    [Y2, gof] = fit( xData, yData, ft, opts );
+    [Y2, ~] = fit( xData, yData, ft, opts );
     
 %     if options.PlotFit
 %         hold on
