@@ -1,4 +1,4 @@
-function [fig_handle1, fig_filename1, plot_title1, fitdata] = dualGaussPlot(RunData,RunVars,options)
+function [plot1, plot2, plot3, fitdata] = dualGaussPlot(RunData,RunVars,options)
 %% DUALGAUSSPLOT(RunData, RunVars, options) [one plot per run]
 % Plots a two-gaussian fit to the localized and delocalized fractions of an expansion distribution.
 % Returns an extra output, a struct of the fits and the widths of each
@@ -186,6 +186,10 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
     varied_variable_name, ...
     legendvars, ...
     varargin);
+
+plot1.fig_handle = fig_handle1;
+plot1.plot_title = plot_title1;
+plot1.fig_filename = fig_filename1;
         
 %% Width Evolution Plot
 
@@ -219,6 +223,10 @@ options2.SubplotTitle = 0;
 
 legend(["Population 1","Population 2"]);
 
+plot2.fig_handle = fig_handle2;
+plot2.plot_title = plot_title2;
+plot2.fig_filename = fig_filename2;
+
 %% Atom Number Evolution Plot
 
 fig_handle3 = figure();
@@ -243,6 +251,10 @@ options2.yLabel = "Fractional Atom Number (a.u.)";
     varargin);
 
 legend(["Population 1","Population 2"]);
+
+plot3.fig_handle = fig_handle3;
+plot3.plot_title = plot_title3;
+plot3.fig_filename = fig_filename3;
 
 %%
 
