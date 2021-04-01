@@ -17,6 +17,7 @@ for ii = 1:N
         thisDateIdx = dateIdx(ii):length(dates);
     end
     thisDateRunNums = runNumbers(thisDateIdx);
+    thisDateRunNums = strrep(thisDateRunNums,'-','');
     
     runNumberStrings(ii) = strjoin(thisDateRunNums);
     dateNumTitle(ii) = strcat( theUniqueDates(ii), " - ", runNumberStrings(ii) );
