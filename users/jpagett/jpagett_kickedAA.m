@@ -43,16 +43,16 @@ data_dir = 'G:\My Drive\_WeldLab\Code\Analysis\_DataAnalysis\_data_loading\Data'
 %% Specify Output Directories
 
 % analysis_output_dir = "G:\My Drive\_WeldLab\Code\Analysis\_DataAnalysis\_out\slowPhason_plots";
-analysis_output_dir = "G:\My Drive\_WeldLab\Code\_Analysis_Out\kickedaa\Vary915ModAmp";
+% analysis_output_dir = "G:\My Drive\_WeldLab\Code\_Analysis_Out\kickedaa\Vary915ModAmp";
 
-% output_start_dir = "G:\My Drive\_WeldLab\Code\Analysis\_DataAnalysis\_out";
-% analysis_output_dir = uigetdir(output_start_dir,...
-%     "Choose where to save the plots.");
+output_start_dir = "G:\My Drive\_WeldLab\Code\Analysis\_DataAnalysis\_out";
+analysis_output_dir = uigetdir(output_start_dir,...
+    "Choose where to save the plots.");
 
-% if analysis_output_dir == 0
-%     disp('Aborting.');
-%     return;
-% end
+if analysis_output_dir == 0
+    disp('Aborting.');
+    return;
+end
 
 % I want to put the expansion plots in their own subdirectory.
 expansion_plot_dir = strcat( analysis_output_dir, filesep, "expansion_plots");
@@ -80,8 +80,9 @@ saveFigure(expansion_plot, expansion_plot_filename, expansion_plot_dir, 'OpenDir
     'WidthFraction',0.7,...
     'PlottedDensity','summedODy',...
     'yLim',[0,0],...
-    'SmoothWindow',10,...
-    'SDplot',1);
+    'SmoothWindow',20,...
+    'RemoveOutliersSD',1,...
+    'SDplot',0);
 saveFigure(width_evo_plot, width_evo_filename, analysis_output_dir, 'SaveFigFile', 1, 'OpenDir', 1);
 
 %% Center Positions Plot Y

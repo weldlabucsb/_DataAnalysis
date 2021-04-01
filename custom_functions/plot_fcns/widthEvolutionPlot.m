@@ -50,6 +50,8 @@ arguments
     options.yLim (1,2) double = [0,0]
     %
     options.PlotPadding = 0;
+    %
+    options.RemoveOutliersSD (1,1) logical = 0;
 end
 %%
 
@@ -124,8 +126,11 @@ for j = 1:length(RunDatas)
         hold on;
     else
         these_widths = [avg_ads{j}.(SD)]*1e6;
-        [~,idx] = rmoutliers(these_widths);
-        these_widths(idx) = Inf;
+        
+        if options.RemoveOutliersSD
+            [~,idx] = rmoutliers(these_widths);
+            these_widths(idx) = Inf;
+        end
         
         plot( varied_var_values{j}, these_widths, 'o-',...
         'LineWidth', options.LineWidth,...
