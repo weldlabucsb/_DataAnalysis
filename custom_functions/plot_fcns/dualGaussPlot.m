@@ -1,4 +1,4 @@
-function [fig_handle, fig_filename, plot_title, widths, fits] = dualGaussPlot(RunData,RunVars,options)
+function [fig_handle1, fig_filename1, plot_title1, fitdata] = dualGaussPlot(RunData,RunVars,options)
 %% DUALGAUSSPLOT(RunData, RunVars, options) [one plot per run]
 % Plots a two-gaussian fit to the localized and delocalized fractions of an expansion distribution.
 % Returns an extra output, a struct of the fits and the widths of each
@@ -34,6 +34,8 @@ arguments
     options.PlotPadding = 15;
     %
     options.SmoothWindow = 5;
+    %
+    options.ManualFitting (1,1) logical = 1
 end
 
 RunDatas = cellWrap(RunData);
@@ -73,7 +75,7 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
 
 %%
 
-    fig_handle = figure();
+    fig_handle1 = figure();
 
     figure_title_dependent_var = options.PlottedDensity;
 
@@ -107,12 +109,61 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
         plot(x, y,'LineWidth',1.5);
         
         try
-            [fits(ii).netFit, fits(ii).fit1, fits(ii).fit2] = ...
-                dualGaussManualFit( x, y, 'OriginalFigureHandle', fig_handle );
+            if options.ManualFitting
+                [fitdata(ii).netFit, fitdata(ii).fit1, fitdata(ii).fit2] = ...
+                    dualGaussManualFit( x, y, 'OriginalFigureHandle', fig_handle1 );
+                
+                yfit = fitdata(ii).fit1;
+                fitdata(ii).width1 = yfit.sigma1;
+                fitdata(ii).atomnumber1 = trapz(x, yfit(x) - yfit.c1);
+                fitdata(ii).center1 = yfit.x1;
 
-%             widths(ii).fit = Fit{ii};
-            widths(ii).thinWidth = min( fits(ii).fit1.sigma1, fits(ii).fit2.sigma2 );
-            widths(ii).wideWidth = max( fits(ii).fit1.sigma1, fits(ii).fit2.sigma2 );
+
+                yfit = fitdata(ii).fit2;
+                fitdata(ii).width2 = yfit.sigma2;
+                fitdata(ii).atomnumber2 = trapz(x, yfit(x));
+                fitdata(ii).center2 = yfit.x2;
+                
+%                 centers1 = arrayfun(@(x) x.fit1.center1, fitdata);
+%                 centers2 = arrayfun(@(x) x.fit2.center2, fitdata);
+                
+%                 widths1 = arrayfun(@(x) x.fit1.sigma1, fitdata);
+%                 widths2 = arrayfun(@(x) x.fit2.sigma2, fitdata);
+                
+            else
+                
+                [fitdata(ii).netFit, fitdata(ii).fit1, fitdata(ii).fit2] = ...
+                    dualGaussAutoFit(x,y);
+                
+                yfit = fitdata(ii).netFit;
+                
+                fitdata(ii).width1 = yfit.sigma1; 
+%                 widths1 = [fitdata.width1];
+                fitdata(ii).width2 = yfit.sigma2; 
+%                 widths2 = [fitdata.width2];
+                
+                fitdata(ii).center1 = yfit.x1; 
+%                 centers1 = [fitdata.center1];
+                fitdata(ii).center2 = yfit.x2; 
+%                 centers2 = [fitdata.center2];
+                
+                fitdata(ii).atomnumber1 = trapz(x, fitdata(ii).fit1);
+                fitdata(ii).atomnumber2 = trapz(x, fitdata(ii).fit2);
+                
+            end
+            
+            widths1 = [fitdata.width1];
+            widths2 = [fitdata.width2];
+            
+            centers1 = [fitdata.center1];
+            centers2 = [fitdata.center2];
+            
+            atomNumbers1 = [fitdata.atomnumber1];
+            atomNumbers2 = [fitdata.atomnumber2];
+            
+            net_atomnums = atomNumbers1 + atomNumbers2;
+            atomNumbers1 = atomNumbers1 ./ net_atomnums;
+            atomNumbers2 = atomNumbers2 ./ net_atomnums;
             
         catch
             disp(strcat(...
@@ -127,8 +178,8 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
 
 %%
 
-[plot_title, fig_filename] = setupPlotWrap( ...
-    fig_handle, ...
+[plot_title1, fig_filename1] = setupPlotWrap( ...
+    fig_handle1, ...
     options, ...
     RunDatas, ...
     figure_title_dependent_var, ...
@@ -136,7 +187,86 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
     legendvars, ...
     varargin);
         
+%% Width Evolution Plot
+
+fig_handle2 = figure();
+
+plot( varied_var_values, widths1, '.-', ...
+    'LineWidth', 1.5)
+hold on;
+plot( varied_var_values, widths2, '.-', ...
+    'LineWidth', 1.5);
+hold off;
+% title( plotTitle( RunData, 'Fitted Component Widths', varied_variable_name, varargin ) );
+
+options2 = options;
+options2.SkipLegend = 1;
+options2.xLim = [varied_var_values(1) varied_var_values(end)];
+options2.LegendFontSize = 16;
+options2.PlotPadding = 0;
+options2.yLabel = "Fitted Component Widths (um)";
+options2.xLabel = varied_variable_name;
+options2.SubplotTitle = 0;
+
+[plot_title2, fig_filename2] = setupPlotWrap( ...
+    fig_handle2, ...
+    options2, ...
+    RunDatas, ...
+    "Fitted Component Widths",...
+    varied_variable_name,...
+    legendvars,...
+    varargin);
+
+legend(["Population 1","Population 2"]);
+
+%% Atom Number Evolution Plot
+
+fig_handle3 = figure();
+
+plot( varied_var_values, atomNumbers1, '.-', ...
+    'LineWidth', 1.5)
+hold on;
+plot( varied_var_values, atomNumbers2, '.-', ...
+    'LineWidth', 1.5);
+hold off;
+% title( plotTitle( RunData, 'Fitted Component Widths', varied_variable_name, varargin ) );
+
+options2.yLabel = "Fractional Atom Number (a.u.)";
+
+[plot_title3, fig_filename3] = setupPlotWrap( ...
+    fig_handle3, ...
+    options2, ...
+    RunDatas, ...
+    "Fractional Atom Number",...
+    varied_variable_name,...
+    legendvars,...
+    varargin);
+
+legend(["Population 1","Population 2"]);
+
 %%
 
+% fig_handle4 = figure();
+% 
+% plot( varied_var_values, centers1, '.-', ...
+%     'LineWidth', 1.5)
+% hold on;
+% plot( varied_var_values, centers2, '.-', ...
+%     'LineWidth', 1.5);
+% hold off;
+% % title( plotTitle( RunData, 'Fitted Component Widths', varied_variable_name, varargin ) );
+% 
+% options2.yLabel = "Center Position (um)";
+% 
+% [plot_title4, fig_filename4] = setupPlotWrap( ...
+%     fig_handle4, ...
+%     options2, ...
+%     RunDatas, ...
+%     "Center Position",...
+%     varied_variable_name,...
+%     legendvars,...
+%     varargin);
+% 
+% legend(["Population 1","Population 2"]);
 
 end
