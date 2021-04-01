@@ -107,7 +107,7 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
         plot(x, y,'LineWidth',1.5);
         
         try
-            Fit{ii} = dual_gauss( x, y );
+            Fit{ii} = dualGaussAutoFit( x, y );
 
             widths(ii).fit = Fit{ii};
             widths(ii).thinWidth = min( Fit{ii}.sigma1, Fit{ii}.sigma2 );
