@@ -21,7 +21,7 @@ arguments
     %
     options.PlottedDensity = "summedODy"
     %
-    options.IncludeSDPlot (1,1) logical = 0
+    options.SDPlot (1,1) logical = 0
     %
     options.WidthFraction (1,1) double = 0.5
     %
@@ -50,10 +50,7 @@ arguments
     options.yLim (1,2) double = [0,0]
     %
     options.PlotPadding = 0;
-    %
 end
-
-options.yLabel = strcat("Width at ", num2str(options.WidthFraction), " of Max Density");
 %%
 
 plottedDensity = options.PlottedDensity;
@@ -62,6 +59,14 @@ if plottedDensity == "summedODy"
     SD = 'cloudSD_y';
 elseif plottedDensity == "summedODx"
     SD = 'cloudSD_x';
+end
+
+%%
+
+if ~options.SDPlot
+    options.yLabel = strcat("Width at ", num2str(options.WidthFraction), " of Max Density");
+else
+    options.yLabel = strcat("SD (Gaussian Fit, ", SD,")");
 end
 
 %% Camera Params
@@ -87,10 +92,14 @@ for j = 1:length(RunDatas)
     
     X{j} = ( 1:size( avg_ads{j}(1).(plottedDensity),2 ) ) * xConvert;
     
-    for ii = 1:size(avg_ads{j},2)
-       widths{j}(ii) = fracWidth( X{j}, avg_ads{j}(ii).(plottedDensity), options.WidthFraction, ...
-           'PeakRadius',options.PeakRadius,'SmoothWindow',options.SmoothWindow);
-    end
+%     if ~options.SDPlot
+        for ii = 1:size(avg_ads{j},2)
+           widths{j}(ii) = fracWidth( X{j}, avg_ads{j}(ii).(plottedDensity), options.WidthFraction, ...
+               'PeakRadius',options.PeakRadius,'SmoothWindow',options.SmoothWindow);
+        end
+%     else
+%         widths{j} = [avg_ads.cloudSD_y];
+%     end
      
 end
 
@@ -98,22 +107,30 @@ end
 
 width_evo_plot = figure();
 
-dependent_var = strcat('FracWidth (',options.PlottedDensity,')');
-
 cmap = colormap( jet( length(RunDatas)));
 
+if ~options.SDPlot
+    dependent_var = strcat('FracWidth (',options.PlottedDensity,')');
+else
+    dependent_var = strcat("Width (fit SD, ",options.PlottedDensity,')');
+end
+
 for j = 1:length(RunDatas)
-   
-    plot( varied_var_values{j}, widths{j} , 'o-',...
+    
+    if ~options.SDPlot
+        plot( varied_var_values{j}, widths{j} , 'o-',...
+            'LineWidth', options.LineWidth,...
+            'Color',cmap(j,:));
+        hold on;
+    else
+        these_widths = [avg_ads{j}.(SD)]*1e6;
+        [~,idx] = rmoutliers(these_widths);
+        these_widths(idx) = Inf;
+        
+        plot( varied_var_values{j}, these_widths, 'o-',...
         'LineWidth', options.LineWidth,...
         'Color',cmap(j,:));
-    
-    hold on;
-    
-    if options.IncludeSDPlot
-        plot( varied_var_values{j}, [avg_ads{j}.(SD)]*1e6 , '--',...
-        'LineWidth', options.LineWidth,...
-        'Color',cmap(j,:));
+        hold on;
     end
     
 end
