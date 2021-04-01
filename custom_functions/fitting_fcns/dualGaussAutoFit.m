@@ -1,5 +1,7 @@
-function [Y, Y1, Y2] = dual_gauss(x,y,options)
-% BIMODAL_FIT returns a fit object Y corresponding to the sum of two gaussians.
+function [Y, Y1, Y2] = dualGaussAutoFit(x,y,options)
+% BIMODAL_FIT returns a fit object Y corresponding to the sum of two
+% gaussians. Automatically estimates the width, height starting points for
+% the fits.
 %
 % Returns a fit object Y equal to the sum of two gaussians. 
 %
