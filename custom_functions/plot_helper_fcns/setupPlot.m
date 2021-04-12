@@ -156,8 +156,8 @@ elseif options.SubplotTitle
 end
 
 if ~options.SkipLabels
-    ylabel(fix(options.yLabel),'FontSize',options.FontSize,'Interpreter',options.Interpreter);
-    xlabel(fix(options.xLabel),'FontSize',options.FontSize,'Interpreter',options.Interpreter);
+    ylabel(fix(yLabel),'FontSize',options.FontSize,'Interpreter',options.Interpreter);
+    xlabel(fix(xLabel),'FontSize',options.FontSize,'Interpreter',options.Interpreter);
 end
 
 % Axes Handling
@@ -174,8 +174,8 @@ end
 % Resizing
 set(figure_handle,'Position',options.Position);
 
-    function out = fix(in)
-        out = strrep(in,'_','');
-    end
+function out = fix(in)
+    out = strrep(in,'_','');
+end
 
 end
