@@ -11,6 +11,7 @@ function [Y1,Y2] = dualGaussTrimFit(x, y, options)
         options.WidthFraction double = 0.65
         options.peakROI = []
         options.MaximumAmplitude (1,1) double = Inf
+        options.LineWidth = 1.5
 %         options.NarrowAmplitudeGuess = []
 %         options.NarrowSigmaGuess = []
 %         options.NarrowOffsetGuess = []
@@ -42,9 +43,7 @@ function [Y1,Y2] = dualGaussTrimFit(x, y, options)
     
     if ~isempty(options.peakROI)
         
-        roi = options.peakROI;
-        
-        roiPos = roi.Position;
+        roiPos = options.peakROI;
         
         roi_x = [roiPos(1), roiPos(1) + roiPos(3)];
         roi_y = [roiPos(2), roiPos(2) + roiPos(4)];
@@ -87,7 +86,7 @@ function [Y1,Y2] = dualGaussTrimFit(x, y, options)
     [Y1, ~] = fit( xData, yData, ft, opts );
     
     if options.PlotFit
-        h = plot( Y1, xData, yData);
+        h = plot( Y1, xData, yData, 'LineWidth', options.LineWidth);
     end
 
     %% Second Fit
@@ -103,6 +102,11 @@ function [Y1,Y2] = dualGaussTrimFit(x, y, options)
     
     [sigmaGuess, centerGuess] = ...
         fracWidth(x(~excludedPoints),y(~excludedPoints),widthFraction);
+    
+    if sigmaGuess > 300
+        ampGuess = 0;
+        sigmaGuess = Inf;
+    end
 
     % Set up fittype and options.
     ft = fittype( 'A2 * exp( - (x - x2)^2/(2*sigma2^2) )', 'independent', 'x', 'dependent', 'y' );

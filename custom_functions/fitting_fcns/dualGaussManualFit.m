@@ -1,4 +1,4 @@
-function [Y, Y1, Y2] = dualGaussManualFit(x,y,options)
+function [Y, Y1, Y2, roiRect] = dualGaussManualFit(x,y,options)
 % BIMODAL_FIT returns two fit objects (Y1 and Y2). Y1's starting parameters
 % are specified by a user-drawn rectangle.
 %
@@ -26,6 +26,8 @@ function [Y, Y1, Y2] = dualGaussManualFit(x,y,options)
         options.PlotComponents (1,1) logical = 0
         options.OriginalFigureHandle = []
         options.MaximumAmplitude (1,1) double = 10000
+        options.FitRects = [];
+        options.LineWidth = 1.5;
     end
     
     if ~isempty(options.OriginalFigureHandle)
@@ -34,15 +36,21 @@ function [Y, Y1, Y2] = dualGaussManualFit(x,y,options)
     end
     
     %% User-specified guesses
-    % ask user for estimate of the peak width, height
-    thisfig = figure();
-    plot(x,y,'LineWidth',1.5);
-    roi = drawrectangle();
+    
+    if isempty(options.FitRects)
+        % ask user for estimate of the peak width, height
+        thisfig = figure();
+        plot(x,y,'LineWidth',1.5);
+        roi = drawrectangle();
+        roiRect = roi.Position;
+    else
+        roiRect = options.FitRects;
+    end
     
     %% Fit first peak
     
     [Y1,Y2] = dualGaussTrimFit(x, y,...
-        'peakROI', roi, ...
+        'peakROI', roiRect, ...
         'MaximumAmplitude', options.MaximumAmplitude);
     
     Y1p = Y1.A1 * exp( - ( (x - Y1.x1)./Y1.sigma1 ).^2 / 2 );
@@ -52,7 +60,9 @@ function [Y, Y1, Y2] = dualGaussManualFit(x,y,options)
        
     %% Plotting
     
-    close(thisfig);
+    if isempty(options.FitRects)
+        close(thisfig);
+    end
     
     if tag
         figure(h);  
@@ -60,10 +70,10 @@ function [Y, Y1, Y2] = dualGaussManualFit(x,y,options)
     
     if options.PlotFit
         hold on
-        plot(x,Y,'--','Color',[5 5 5]/255,'LineWidth',2);
+        plot(x,Y,':','Color',[5 5 5]/255,'LineWidth',options.LineWidth);
         if options.PlotComponents
-            plot(x,Y1,'-.','Color',[50 50 50]/255,'LineWidth',1.5);
-            plot(x,Y2,'-.','Color',[80 80 80]/255,'LineWidth',1.5);
+            plot(x,Y1,'-.','Color',[50 50 50]/255,'LineWidth',options.LineWidth);
+            plot(x,Y2,'-.','Color',[80 80 80]/255,'LineWidth',options.LineWidth);
         end
         hold off
     end

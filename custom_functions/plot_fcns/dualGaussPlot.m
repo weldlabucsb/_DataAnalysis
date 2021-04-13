@@ -1,4 +1,4 @@
-function [plot1, plot2, plot3, fitdata] = dualGaussPlot(RunData,RunVars,options)
+function [plot1, plot2, plot3, fitdata, fit_rects] = dualGaussPlot(RunData,RunVars,options)
 %% DUALGAUSSPLOT(RunData, RunVars, options) [one plot per run]
 % Plots a two-gaussian fit to the localized and delocalized fractions of an expansion distribution.
 % Returns an extra output, a struct of the fits and the widths of each
@@ -24,7 +24,7 @@ arguments
     %
     options.LegendLabels = []
     options.LegendTitle string = ""
-    options.Position (1,4) double = [1, 41, 2560, 1323];
+    options.Position (1,4) double = [2561, 224, 1920, 963];
     %
     options.PlotTitle = ""
     %
@@ -36,9 +36,14 @@ arguments
     options.SmoothWindow = 5;
     %
     options.ManualFitting (1,1) logical = 1
+    %
+    options.FitRects = {}
+    %
+    options.SubFigureLineWidth = 3;
 end
 
 RunDatas = cellWrap(RunData);
+frects = options.FitRects;
 
 %%
 
@@ -106,12 +111,21 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
         
         y = movmean( density(ii,:), options.SmoothWindow );
         
-        plot(x, y,'LineWidth',1.5);
+        plot(x, y,'LineWidth',options.SubFigureLineWidth);
         
-        try
+%         try
             if options.ManualFitting
-                [fitdata(ii).netFit, fitdata(ii).fit1, fitdata(ii).fit2] = ...
-                    dualGaussManualFit( x, y, 'OriginalFigureHandle', fig_handle1 );
+                
+                if isempty(options.FitRects)
+                    [fitdata(ii).netFit, fitdata(ii).fit1, fitdata(ii).fit2, fit_rects{ii}] = ...
+                        dualGaussManualFit( x, y, 'OriginalFigureHandle', fig_handle1, ...
+                        'LineWidth', options.SubFigureLineWidth);
+                else
+                    [fitdata(ii).netFit, fitdata(ii).fit1, fitdata(ii).fit2, fit_rects{ii}] = ...
+                        dualGaussManualFit( x, y, 'OriginalFigureHandle', fig_handle1,...
+                        'FitRect', frects{ii}, ...
+                        'LineWidth', options.SubFigureLineWidth);
+                end
                 
                 yfit = fitdata(ii).fit1;
                 fitdata(ii).width1 = yfit.sigma1;
@@ -165,11 +179,11 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
             atomNumbers1 = atomNumbers1 ./ net_atomnums;
             atomNumbers2 = atomNumbers2 ./ net_atomnums;
             
-        catch
-            disp(strcat(...
-                "Fit failed on entry ", num2str(ii), "/", num2str(N) ...
-            ));
-        end
+%         catch
+%             disp(strcat(...
+%                 "Fit failed on entry ", num2str(ii), "/", num2str(N) ...
+%             ));
+%         end
         
         title(['915VVA = ' num2str(varied_var_values(ii))],'Interpreter','latex')
         
