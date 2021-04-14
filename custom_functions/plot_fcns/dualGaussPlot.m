@@ -176,8 +176,8 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
             atomNumbers2 = [fitdata.atomnumber2];
             
             net_atomnums = atomNumbers1 + atomNumbers2;
-            atomNumbers1 = atomNumbers1 ./ net_atomnums;
-            atomNumbers2 = atomNumbers2 ./ net_atomnums;
+%             atomNumbers1 = atomNumbers1 ./ net_atomnums;
+%             atomNumbers2 = atomNumbers2 ./ net_atomnums;
             
 %         catch
 %             disp(strcat(...
@@ -245,12 +245,14 @@ plot2.fig_filename = fig_filename2;
 
 fig_handle3 = figure();
 
-plot( varied_var_values, atomNumbers1, '.-', ...
-    'LineWidth', 1.5)
-hold on;
-plot( varied_var_values, atomNumbers2, '.-', ...
+plot( varied_var_values, atomNumbers2 / net_atomnums(1), '.-', ...
     'LineWidth', 1.5);
-hold off;
+% hold on;
+% plot( varied_var_values, atomNumbers1 / net_atomnums(1), '.-', ...
+%     'LineWidth', 1.5)
+
+
+% hold off;
 % title( plotTitle( RunData, 'Fitted Component Widths', varied_variable_name, varargin ) );
 
 options2.yLabel = "Fractional Atom Number (a.u.)";

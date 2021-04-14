@@ -56,8 +56,8 @@ for j = 1:length(RunDatas)
             'Interpreter','Latex',...
             'FontSize',titleFontSize1);
         
-    saveFigure( plot1.fig_handle, filenameFromPlotTitle(fig1SaveTitle), saveSubDir, ...
-        'SaveFigFile', 1);
+%     saveFigure( plot1.fig_handle, filenameFromPlotTitle(fig1SaveTitle), saveSubDir, ...
+%         'SaveFigFile', 1);
 
     %% 
 
@@ -99,8 +99,8 @@ for j = 1:length(RunDatas)
         'FontSize',labelFontSize);
     
     fig2SaveTitle = {"Component Widths vs. Disorder Lattice Depth"; paramstring{j}};
-    saveFigure( plot2.fig_handle, filenameFromPlotTitle(fig2SaveTitle), saveSubDir, ...
-        'SaveFigFile', 1);
+%     saveFigure( plot2.fig_handle, filenameFromPlotTitle(fig2SaveTitle), saveSubDir, ...
+%         'SaveFigFile', 1);
     
     %%
     
@@ -109,7 +109,8 @@ for j = 1:length(RunDatas)
     leg = fchild(1);
     ax = fchild(2);
     
-    xlim([2.11, 7.5]);
+    xlim([0.95, 7.5]);
+    ylim([0, 1]);
 
     lins = get(ax,'Children');
     shapes = ['s', 'v'];
@@ -140,7 +141,7 @@ for j = 1:length(RunDatas)
         'Interpreter','latex',...
         'FontSize',labelFontSize);
     
-    fig3SaveTitle = {"Fractional Population vs. Disorder Lattice Depth"; paramstring{j}};
+    fig3SaveTitle = {"Fractional Population (norm to first pt) vs. Disorder Lattice Depth"; paramstring{j}};
     saveFigure( plot3.fig_handle, filenameFromPlotTitle(fig3SaveTitle), saveSubDir, ...
         'SaveFigFile', 1);
     
