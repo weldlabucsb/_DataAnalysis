@@ -125,7 +125,8 @@ if ~options.SkipLegend
     if isempty(options.LegendLabels) && ~isempty(legendvars)
         labels = makeLegendLabels(RunDatas, varied_variable_name, legendvars, options.PlotEvery);
     else
-        labels = string(cellfun( @(x) x.RunNumber, RunDatas, 'UniformOutput', false));
+%         labels = string(cellfun( @(x) x.RunNumber, RunDatas, 'UniformOutput', false));
+        labels = options.LegendLabels;
     end
 
     options.LegendLabels = labels;
