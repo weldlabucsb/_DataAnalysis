@@ -243,19 +243,38 @@ plot2.fig_filename = fig_filename2;
 
 %% Atom Number Evolution Plot
 
+atomNumbers1(2:3) = [];
+atomNumbers2(2:3) = [];
+net_atomnums(2:3) = [];
+varied_var_values(2:3) = [];
+
+% reference_atomNum = max(net_atomnums);
+% reference_atomNum = net_atomnums(1);
+% reference_atomNum = 1;
+
 fig_handle3 = figure();
 
-plot( varied_var_values, atomNumbers2 / net_atomnums(1), '.-', ...
-    'LineWidth', 1.5);
+% plot( varied_var_values, atomNumbers2 / reference_atomNum, '.-', ...
+%     'LineWidth', 1.5);
 % hold on;
-% plot( varied_var_values, atomNumbers1 / net_atomnums(1), '.-', ...
+% plot( varied_var_values, atomNumbers1 / reference_atomNum, '.-', ...
 %     'LineWidth', 1.5)
+% plot( varied_var_values, net_atomnums / reference_atomNum, '.-', ...
+%     'LineWidth', 1.5);
+
+plot( varied_var_values, atomNumbers2 ./ net_atomnums, '.-', ...
+    'LineWidth', 1.5);
+hold on;
+plot( varied_var_values, atomNumbers1 ./ net_atomnums, '.-', ...
+    'LineWidth', 1.5)
+% plot( varied_var_values, net_atomnums ./ net_atomnums, '.-', ...
+%     'LineWidth', 1.5);
 
 
-% hold off;
+hold off;
 % title( plotTitle( RunData, 'Fitted Component Widths', varied_variable_name, varargin ) );
 
-options2.yLabel = "Fractional Atom Number (a.u.)";
+options2.yLabel = "Fractional Population (a.u.)";
 
 [plot_title3, fig_filename3] = setupPlotWrap( ...
     fig_handle3, ...
@@ -266,7 +285,7 @@ options2.yLabel = "Fractional Atom Number (a.u.)";
     legendvars,...
     varargin);
 
-legend(["Population 1","Population 2"]);
+legend(["Population 1","Population 2","Total Population"]);
 
 plot3.fig_handle = fig_handle3;
 plot3.plot_title = plot_title3;

@@ -70,7 +70,7 @@ for j = 1:length(RunDatas)
     ylim([0,160]);
 
     lins = get(ax,'Children');
-    shapes = ['s', 'v'];
+    shapes = ['s', 'v', 'o'];
     for ii = 1:length(lins)
        set(lins(ii),'LineWidth',4); 
        set(lins(ii),'LineStyle','none');
@@ -110,10 +110,10 @@ for j = 1:length(RunDatas)
     ax = fchild(2);
     
     xlim([0.95, 7.5]);
-    ylim([0, 1]);
+%     ylim([0, 1]);
 
     lins = get(ax,'Children');
-    shapes = ['s', 'v'];
+    shapes = ['s', 'v', 'o'];
     for ii = 1:length(lins)
        set(lins(ii),'LineWidth',4); 
        set(lins(ii),'LineStyle','none');
