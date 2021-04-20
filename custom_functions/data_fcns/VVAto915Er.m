@@ -41,7 +41,7 @@ function s2_values = VVAto915Er(Lattice915VVA_vector, options)
     
     voltages = VVAtoVoltage( Lattice915VVA_vector,...
         'DefaultKDValue', options.DefaultKDValue, ...
-        'Atomdata', atomdata);
+        'KDAtomdata', atomdata);
 
     s2_values = voltages * secondaryErPerVolt / secondaryPDGain;
 
