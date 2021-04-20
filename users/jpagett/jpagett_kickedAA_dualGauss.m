@@ -7,7 +7,7 @@ legendFontSize = 32;
 labelFontSize = 32;
 axesLabelFontSize = 26;
 
-%%
+%% Load Data
 
 % load("E:\Data\kickedaa_E\kickedaa_3-23-2021_runs10-20_moreVary915.mat");
 % selectRuns(Data);
@@ -19,6 +19,9 @@ saveDir = "G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\KickedAA_DualGauss\figur
 
 for j = 1:length(RunDatas)
     
+    % plot1-3 are fig handles, fits are fit objects, and frects are the
+    % rectangles you draw (saves them if you don't clear, so that you don't
+    % have to redraw every time
     if ~exist('frects')
         [plot1, plot2, plot3, fits, frects] = dualGaussPlot(RunDatas,RunVars,...
         'TitleFontSize', 16, ...
@@ -39,7 +42,7 @@ for j = 1:length(RunDatas)
 
     saveSubDir = fullfile(saveDir, runDateList(RunDatas) );
 
-%%
+%% run parameters string
 
     paramstring{j} = strcat("1064 Depth - 10 E$_\mathrm{r}$,",...
             " Lattice Hold - ",num2str(RunDatas{j}.vars.LatticeHold,'%3.0f')," ms,",...
@@ -51,7 +54,6 @@ for j = 1:length(RunDatas)
     figure(plot1.fig_handle);
     
     fig1SaveTitle = {"Density vs. Disorder Lattice Depth"; paramstring{j}};
-%     fig1Title = "Density vs. Disorder Lattice Depth";
     sgtitle(fig1SaveTitle,...
             'Interpreter','Latex',...
             'FontSize',titleFontSize1);
