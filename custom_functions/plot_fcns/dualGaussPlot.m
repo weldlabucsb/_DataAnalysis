@@ -138,12 +138,6 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
                 fitdata(ii).atomnumber2 = trapz(x, yfit(x));
                 fitdata(ii).center2 = yfit.x2;
                 
-%                 centers1 = arrayfun(@(x) x.fit1.center1, fitdata);
-%                 centers2 = arrayfun(@(x) x.fit2.center2, fitdata);
-                
-%                 widths1 = arrayfun(@(x) x.fit1.sigma1, fitdata);
-%                 widths2 = arrayfun(@(x) x.fit2.sigma2, fitdata);
-                
             else
                 
                 [fitdata(ii).netFit, fitdata(ii).fit1, fitdata(ii).fit2] = ...
@@ -152,15 +146,12 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
                 yfit = fitdata(ii).netFit;
                 
                 fitdata(ii).width1 = yfit.sigma1; 
-%                 widths1 = [fitdata.width1];
                 fitdata(ii).width2 = yfit.sigma2; 
-%                 widths2 = [fitdata.width2];
                 
                 fitdata(ii).center1 = yfit.x1; 
-%                 centers1 = [fitdata.center1];
                 fitdata(ii).center2 = yfit.x2; 
-%                 centers2 = [fitdata.center2];
                 
+                % here is where the atom numbers are computed (areas)
                 fitdata(ii).atomnumber1 = trapz(x, fitdata(ii).fit1);
                 fitdata(ii).atomnumber2 = trapz(x, fitdata(ii).fit2);
                 
@@ -243,16 +234,22 @@ plot2.fig_filename = fig_filename2;
 
 %% Atom Number Evolution Plot
 
+fig_handle3 = figure();
+
+% manually omit the nasty data points where the fits are awful
 atomNumbers1(2:3) = [];
 atomNumbers2(2:3) = [];
 net_atomnums(2:3) = [];
 varied_var_values(2:3) = [];
 
+%% Here I decide how to normalize each atom number datapoint
+
+
+%%% This section is for normalizing all the points to a single value %%%
+
 % reference_atomNum = max(net_atomnums);
 % reference_atomNum = net_atomnums(1);
 % reference_atomNum = 1;
-
-fig_handle3 = figure();
 
 % plot( varied_var_values, atomNumbers2 / reference_atomNum, '.-', ...
 %     'LineWidth', 1.5);
@@ -262,13 +259,13 @@ fig_handle3 = figure();
 % plot( varied_var_values, net_atomnums / reference_atomNum, '.-', ...
 %     'LineWidth', 1.5);
 
+
+%%% This section is for normalizing each datapoint to the sum at that datapoint %%%
 plot( varied_var_values, atomNumbers2 ./ net_atomnums, '.-', ...
     'LineWidth', 1.5);
 hold on;
 plot( varied_var_values, atomNumbers1 ./ net_atomnums, '.-', ...
-    'LineWidth', 1.5)
-% plot( varied_var_values, net_atomnums ./ net_atomnums, '.-', ...
-%     'LineWidth', 1.5);
+    'LineWidth', 1.5);
 
 
 hold off;
