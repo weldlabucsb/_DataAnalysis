@@ -1,4 +1,4 @@
-function [plot1, plot2, plot3, fitdata] = dualGaussPlot(RunData,RunVars,options)
+function [plot1, plot2, plot3, fitdata, fit_rects] = dualGaussPlot(RunData,RunVars,options)
 %% DUALGAUSSPLOT(RunData, RunVars, options) [one plot per run]
 % Plots a two-gaussian fit to the localized and delocalized fractions of an expansion distribution.
 % Returns an extra output, a struct of the fits and the widths of each
@@ -24,7 +24,7 @@ arguments
     %
     options.LegendLabels = []
     options.LegendTitle string = ""
-    options.Position (1,4) double = [1, 41, 2560, 1323];
+    options.Position (1,4) double = [2561, 224, 1920, 963];
     %
     options.PlotTitle = ""
     %
@@ -36,9 +36,14 @@ arguments
     options.SmoothWindow = 5;
     %
     options.ManualFitting (1,1) logical = 1
+    %
+    options.FitRects = {}
+    %
+    options.SubFigureLineWidth = 3;
 end
 
 RunDatas = cellWrap(RunData);
+frects = options.FitRects;
 
 %%
 
@@ -106,12 +111,21 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
         
         y = movmean( density(ii,:), options.SmoothWindow );
         
-        plot(x, y,'LineWidth',1.5);
+        plot(x, y,'LineWidth',options.SubFigureLineWidth);
         
-        try
+%         try
             if options.ManualFitting
-                [fitdata(ii).netFit, fitdata(ii).fit1, fitdata(ii).fit2] = ...
-                    dualGaussManualFit( x, y, 'OriginalFigureHandle', fig_handle1 );
+                
+                if isempty(options.FitRects)
+                    [fitdata(ii).netFit, fitdata(ii).fit1, fitdata(ii).fit2, fit_rects{ii}] = ...
+                        dualGaussManualFit( x, y, 'OriginalFigureHandle', fig_handle1, ...
+                        'LineWidth', options.SubFigureLineWidth);
+                else
+                    [fitdata(ii).netFit, fitdata(ii).fit1, fitdata(ii).fit2, fit_rects{ii}] = ...
+                        dualGaussManualFit( x, y, 'OriginalFigureHandle', fig_handle1,...
+                        'FitRect', frects{ii}, ...
+                        'LineWidth', options.SubFigureLineWidth);
+                end
                 
                 yfit = fitdata(ii).fit1;
                 fitdata(ii).width1 = yfit.sigma1;
@@ -124,12 +138,6 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
                 fitdata(ii).atomnumber2 = trapz(x, yfit(x));
                 fitdata(ii).center2 = yfit.x2;
                 
-%                 centers1 = arrayfun(@(x) x.fit1.center1, fitdata);
-%                 centers2 = arrayfun(@(x) x.fit2.center2, fitdata);
-                
-%                 widths1 = arrayfun(@(x) x.fit1.sigma1, fitdata);
-%                 widths2 = arrayfun(@(x) x.fit2.sigma2, fitdata);
-                
             else
                 
                 [fitdata(ii).netFit, fitdata(ii).fit1, fitdata(ii).fit2] = ...
@@ -138,15 +146,12 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
                 yfit = fitdata(ii).netFit;
                 
                 fitdata(ii).width1 = yfit.sigma1; 
-%                 widths1 = [fitdata.width1];
                 fitdata(ii).width2 = yfit.sigma2; 
-%                 widths2 = [fitdata.width2];
                 
                 fitdata(ii).center1 = yfit.x1; 
-%                 centers1 = [fitdata.center1];
                 fitdata(ii).center2 = yfit.x2; 
-%                 centers2 = [fitdata.center2];
                 
+                % here is where the atom numbers are computed (areas)
                 fitdata(ii).atomnumber1 = trapz(x, fitdata(ii).fit1);
                 fitdata(ii).atomnumber2 = trapz(x, fitdata(ii).fit2);
                 
@@ -162,14 +167,14 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
             atomNumbers2 = [fitdata.atomnumber2];
             
             net_atomnums = atomNumbers1 + atomNumbers2;
-            atomNumbers1 = atomNumbers1 ./ net_atomnums;
-            atomNumbers2 = atomNumbers2 ./ net_atomnums;
+%             atomNumbers1 = atomNumbers1 ./ net_atomnums;
+%             atomNumbers2 = atomNumbers2 ./ net_atomnums;
             
-        catch
-            disp(strcat(...
-                "Fit failed on entry ", num2str(ii), "/", num2str(N) ...
-            ));
-        end
+%         catch
+%             disp(strcat(...
+%                 "Fit failed on entry ", num2str(ii), "/", num2str(N) ...
+%             ));
+%         end
         
         title(['915VVA = ' num2str(varied_var_values(ii))],'Interpreter','latex')
         
@@ -231,15 +236,42 @@ plot2.fig_filename = fig_filename2;
 
 fig_handle3 = figure();
 
-plot( varied_var_values, atomNumbers1, '.-', ...
-    'LineWidth', 1.5)
-hold on;
-plot( varied_var_values, atomNumbers2, '.-', ...
+% manually omit the nasty data points where the fits are awful
+atomNumbers1(2:3) = [];
+atomNumbers2(2:3) = [];
+net_atomnums(2:3) = [];
+varied_var_values(2:3) = [];
+
+%% Here I decide how to normalize each atom number datapoint
+
+
+%%% This section is for normalizing all the points to a single value %%%
+
+% reference_atomNum = max(net_atomnums);
+% reference_atomNum = net_atomnums(1);
+% reference_atomNum = 1;
+
+% plot( varied_var_values, atomNumbers2 / reference_atomNum, '.-', ...
+%     'LineWidth', 1.5);
+% hold on;
+% plot( varied_var_values, atomNumbers1 / reference_atomNum, '.-', ...
+%     'LineWidth', 1.5)
+% plot( varied_var_values, net_atomnums / reference_atomNum, '.-', ...
+%     'LineWidth', 1.5);
+
+
+%%% This section is for normalizing each datapoint to the sum at that datapoint %%%
+plot( varied_var_values, atomNumbers2 ./ net_atomnums, '.-', ...
     'LineWidth', 1.5);
+hold on;
+plot( varied_var_values, atomNumbers1 ./ net_atomnums, '.-', ...
+    'LineWidth', 1.5);
+
+
 hold off;
 % title( plotTitle( RunData, 'Fitted Component Widths', varied_variable_name, varargin ) );
 
-options2.yLabel = "Fractional Atom Number (a.u.)";
+options2.yLabel = "Fractional Population (a.u.)";
 
 [plot_title3, fig_filename3] = setupPlotWrap( ...
     fig_handle3, ...
@@ -250,7 +282,7 @@ options2.yLabel = "Fractional Atom Number (a.u.)";
     legendvars,...
     varargin);
 
-legend(["Population 1","Population 2"]);
+legend(["Population 1","Population 2","Total Population"]);
 
 plot3.fig_handle = fig_handle3;
 plot3.plot_title = plot_title3;

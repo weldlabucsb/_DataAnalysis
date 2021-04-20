@@ -93,4 +93,22 @@ function options = replaceMissingOptions(options)
     if ~isfield(options,'SkipLabels')
         options.SkipLabels = 0;
     end
+    if ~isfield(options,'yLabel')
+        options.yLabel = "";
+    end
+    if ~isfield(options,'xLabel')
+        options.xLabel = "";
+    end
+    if ~isfield(options,'yUnits')
+        options.yUnits = "";
+    end
+    if ~isfield(options,'xUnits')
+        options.xUnits = "";
+    end
+    if ~isfield(options,'LegendTitle')
+        options.LegendTitle = "";
+    end
+    if ~isfield(options,'LegendTitle')
+        options.PlotTitle = "";
+    end
 end

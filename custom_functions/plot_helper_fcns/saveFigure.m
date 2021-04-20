@@ -13,6 +13,7 @@ end
 arguments
     options.SaveFigFile (1,1) logical = 0
     options.OpenDir (1,1) logical = 0
+    options.FileType string = ".png"
 end
 
 if ~isfolder( varargin{1} )
@@ -36,6 +37,10 @@ if class(figure_handle) ~= "cell"
 end
 
 N_figures = length(filename);
+for j = 1:N_figures
+   filename{j} = changeFileType(filename{j}, options.FileType); 
+end
+
 % loop over the figures and save them all
 for j = 1:N_figures
     
@@ -55,7 +60,8 @@ if options.SaveFigFile
         
         disp(strcat("Saving ", num2str(j), "/", num2str(N_figures) ," figure files."));
 
-        filename{j} = strrep(filename{j},".png",".fig");
+%         filename{j} = strrep(filename{j},options.FileType,".fig");
+        filename{j} = changeFileType(filename{j}, ".fig");
 
         saveas( figure_handle{j}, filename{j} );
     
@@ -78,4 +84,17 @@ if options.OpenDir
     
 end
 
+end
+
+function out = changeFileType(in_string, newFileType)
+    
+    newFileType = strrep(newFileType,".","");
+
+    spl = split(in_string,".");
+    if length(spl) > 1
+       spl(end) = newFileType;
+       out = strjoin([strjoin(spl(1:(end-1)),""),spl(end)],".")
+    else
+       out = strcat(spl, ".", newFileType);
+    end
 end

@@ -44,4 +44,10 @@ if options.ReplaceSpaces
     figure_filename = strrep( figure_filename, " ", options.ReplaceSpacesWith );
 end
 
+figure_filename = strrep( figure_filename, "$", "" );
+figure_filename = strrep( figure_filename, "\", "" );
+figure_filename = strrep( figure_filename, "{", "" );
+figure_filename = strrep( figure_filename, "}", "" );
+figure_filename = strrep( figure_filename, "mathrm", "");
+
 end
