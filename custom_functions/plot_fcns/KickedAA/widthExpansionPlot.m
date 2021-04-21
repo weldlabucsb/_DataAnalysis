@@ -43,7 +43,9 @@ arguments
     options.PlotPadding = 0;
 end
 varied_variable_name = RunVars.varied_var;
+% varied_variable_name = {'Lattice915VVA'};
 legendvars = RunVars.heldvars_each;
+% legendvars = {'Lattice915VVA'};
 varargin = {RunVars.heldvars_all};
 
     % Use avgRepeats on your RunDatas to extract repeat-averaged values of
@@ -125,7 +127,7 @@ varargin = {RunVars.heldvars_all};
             la1 = 1064;
             la2 = 915;
             
-            [J, Delta]  = J_Delta_Gaussian(s1,s2,la1,la2);
+            [J, Delta]  = J_Delta_PiecewiseFit(s1,s2);
             
             hbar_Er1064 = 7.578e-5; %Units of Er*seconds
             hbar_Er1064_us = 75.78; %hbar in units of Er*microseconds
@@ -214,9 +216,32 @@ varargin = {RunVars.heldvars_all};
         set(gca,'xscale','log');
         hold on;
     end
-    hold off;    
+    hold off;
     
-    
+    %for fitting the 1second lattice hold...
+    fifth_fig = figure(5);
+%     fifth_title_dep_var = ['915 Strength [E_{R}]'];
+    s2 = vva_to_voltage(1)*secondaryErPerVolt/secondaryPDGain;
+    special915Vec = [s2 lat915Matrix(8,:)];
+    specialWidthsMatrix = [2.524797095256649e-05 widthsMatrix(8,:)];
+    f = fit(special915Vec',specialWidthsMatrix','exp1','Exclude',specialWidthsMatrix>3E-5);
+    hold on;
+    plot(special915Vec,smooth(specialWidthsMatrix,3));
+    plot(f,special915Vec,specialWidthsMatrix);
+    hold off;
+    keyboard;
+        options.xLabel = '915 Strength [E_{R}]';
+    options.yLabel = 'cloudSD_y';
+    [plot_title, fig_filename] = ...
+        setupPlotWrap( ...
+            fifth_fig, ...
+            options, ...
+            RunDatas, ...
+            figure_title_dependent_var, ...
+            varied_variable_name, ...
+            legendvars, ...
+            varargin);
+    keyboard;
     third_fig = figure(3);
 %     figure_title_dependent_var = ['width at ' num2str(frac) ' maximum (summedODy, au)'];
     figure_title_dependent_var = ['cloudSD_y'];
@@ -237,7 +262,7 @@ varargin = {RunVars.heldvars_all};
     end
     hold off; 
     
-    if(1)
+    if(0)
             point_types = repmat({'o','^','s','d','p'},1,3);
             paper_fig = figure(27);
 %             cmap = colormap( hot( size(avg_atomdata{1}, 2)+8 ) );
@@ -368,8 +393,16 @@ varargin = {RunVars.heldvars_all};
         V0s = [0.0297611340889169,0.0320000000016725,0.0360000000000222,0.0620546063258612,0.0719909967293660,0.100286258828503,0.132132920348285,0.160270640980708,0.194334313681227,0.216658564267728,0.230893463124005,0.254476729560220,0.267785474698420,0.284191264615461,0.300403320122237,0.316392760370631,0.335449780883353,0.341275399292686,0.355480424302642,0.370968685011421,0.386239458185895,0.393433865352977,0.408399987686944];
         vvas = [1,1.80000000000000,1.90000000000000,2,2.10000000000000,2.20000000000000,2.40000000000000,2.60000000000000,2.80000000000000,3,3.10000000000000,3.30000000000000,3.40000000000000,3.60000000000000,3.80000000000000,4,4.20000000000000,4.40000000000000,4.70000000000000,5,5.50000000000000,6,7.50000000000000];
         
+        %for 3/23 data
+%         V0s = [0,0.0736783508103853,0.0919325233215497,0.140775622496791,0.177681318284420,0.213707250228924,0.244105225971579,0.256827061740513,0.278925131974928,0.289462482914506,0.315246479230482,0.332958057066155,0.346744790852344,0.332958057066155,0.381614474966698,0.402993079662267,0.408784741151747,0.427199505248519,0.437485713621218,0.452582892831114];
+%         vvas = [1,2,2.10000000000000,2.40000000000000,2.60000000000000,2.80000000000000,3,3.10000000000000,3.30000000000000,3.40000000000000,3.60000000000000,3.80000000000000,4,4.20000000000000,4.40000000000000,4.70000000000000,5,5.50000000000000,6,7.50000000000000];
         
-        depth = interp1(vvas,V0s,vva);
+        
+        depth = interp1(vvas,V0s,vva);        
+        %how to get the vva and V0 values
+        %1. load the atomdata of the KD run. Doit must have been run
+        %V0s = [atomdata(:).V0];
+        %for ii = 1:length(atomdata) vvas(ii) = atomdata(ii).vars.Lattice915VVA; end
     end
 
 end

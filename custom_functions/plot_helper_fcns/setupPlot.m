@@ -157,8 +157,8 @@ elseif options.SubplotTitle
 end
 
 if ~options.SkipLabels
-    ylabel(fix(yLabel),'FontSize',options.FontSize,'Interpreter',options.Interpreter);
-    xlabel(fix(xLabel),'FontSize',options.FontSize,'Interpreter',options.Interpreter);
+    ylabel(yLabel,'FontSize',options.FontSize,'Interpreter',options.Interpreter);
+    xlabel(xLabel,'FontSize',options.FontSize,'Interpreter',options.Interpreter);
 end
 
 % Axes Handling
