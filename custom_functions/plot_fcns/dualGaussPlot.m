@@ -211,8 +211,10 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
         
         latticeParams(ii).J = J(ii);
         latticeParams(ii).Delta = Delta(ii);
-        latticeParams(ii).depth915Er = depth915Er(ii);
         latticeParams(ii).lambda = lambda(ii);
+        latticeParams(ii).depth915Er = depth915Er(ii);
+        latticeParams(ii).Lattice915VVA = varied_var_values(ii);
+        
     end
 
 %%
@@ -234,10 +236,10 @@ plot1.fig_filename = fig_filename1;
 
 fig_handle2 = figure();
 
-plot( varied_var_values, widths1, '.-', ...
+plot( lambda, widths1, '.-', ...
     'LineWidth', 1.5)
 hold on;
-plot( varied_var_values, widths2, '.-', ...
+plot( lambda, widths2, '.-', ...
     'LineWidth', 1.5);
 hold off;
 % title( plotTitle( RunData, 'Fitted Component Widths', varied_variable_name, varargin ) );
@@ -271,35 +273,40 @@ plot2.fig_filename = fig_filename2;
 fig_handle3 = figure();
 
 % manually omit the nasty data points where the fits are awful
-atomNumbers1(2:3) = [];
-atomNumbers2(2:3) = [];
-net_atomnums(2:3) = [];
-varied_var_values(2:3) = [];
 
-%% Here I decide how to normalize each atom number datapoint
+% temp = atomNumbers1;
+% atomNumbers1(2:3) = atomNumbers2(2:3);
+% atomNumbers2(2:3) = temp(2:3);
 
+% atomNumbers1(2:3) = [];
+% atomNumbers2(2:3) = [];
+% net_atomnums(2:3) = [];
+% lambda(2:3) = [];
+% varied_var_values(2:3) = [];
+
+% Here I decide how to normalize each atom number datapoint
 
 %%% This section is for normalizing all the points to a single value %%%
 
 % reference_atomNum = max(net_atomnums);
-% reference_atomNum = net_atomnums(1);
+reference_atomNum = net_atomnums(1);
 % reference_atomNum = 1;
 
-% plot( varied_var_values, atomNumbers2 / reference_atomNum, '.-', ...
-%     'LineWidth', 1.5);
+plot( lambda, atomNumbers2 / reference_atomNum, '.-', ...
+    'LineWidth', 1.5);
 % hold on;
-% plot( varied_var_values, atomNumbers1 / reference_atomNum, '.-', ...
+% plot( lambda, atomNumbers1 / reference_atomNum, '.-', ...
 %     'LineWidth', 1.5)
-% plot( varied_var_values, net_atomnums / reference_atomNum, '.-', ...
+% plot( lambda, net_atomnums / reference_atomNum, '.-', ...
 %     'LineWidth', 1.5);
 
 
 %%% This section is for normalizing each datapoint to the sum at that datapoint %%%
-plot( varied_var_values, atomNumbers2 ./ net_atomnums, '.-', ...
-    'LineWidth', 1.5);
-hold on;
-plot( varied_var_values, atomNumbers1 ./ net_atomnums, '.-', ...
-    'LineWidth', 1.5);
+% plot( lambda, atomNumbers2 ./ net_atomnums, '.-', ...
+%     'LineWidth', 1.5);
+% hold on;
+% plot( lambda, atomNumbers1 ./ net_atomnums, '.-', ...
+%     'LineWidth', 1.5);
 
 
 hold off;
