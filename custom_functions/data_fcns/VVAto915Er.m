@@ -32,7 +32,7 @@ function s2_values = VVAto915Er(Lattice915VVA_vector, options)
         % if not using default value, load an atomdata and grab the Er per
         % volt value from there.
         if isempty(options.KDAtomdata)
-           atomdata = load("X:\StrontiumData\*.m"); atomdata = atomdata.atomdata;
+           atomdata = uigetfile("X:\StrontiumData\*.m"); atomdata = atomdata.atomdata;
         else
            atomdata = options.KDAtomdata; 
         end

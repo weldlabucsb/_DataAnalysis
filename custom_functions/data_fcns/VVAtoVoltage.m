@@ -35,7 +35,7 @@ function voltage = VVAtoVoltage(VVA_vector, options)
         
         if isempty(atomdata)
             % load a new atomdata if you didn't provide one
-            atomdata = load("X:\StrontiumData\*.m"); atomdata = atomdata.atomdata;
+            atomdata = uigetfile("X:\StrontiumData\*.m"); atomdata = atomdata.atomdata;
             options.atomdata = atomdata;
         end
         
