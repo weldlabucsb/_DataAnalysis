@@ -16,10 +16,12 @@ arguments
     options.FileType string = ".png"
 end
 
+varargin{1} = strrep(varargin{1},'.','-');
+
 if ~isfolder( varargin{1} )
     disp(strcat(...
         "Output folder at ",varargin{1}, " does not exist. Creating directory."));
-    mkdir(varargin{1});
+    mkdir( varargin{1} );
 end
 
 if isempty(varargin)

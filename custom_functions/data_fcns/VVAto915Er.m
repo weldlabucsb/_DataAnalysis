@@ -32,12 +32,14 @@ function s2_values = VVAto915Er(Lattice915VVA_vector, options)
         % if not using default value, load an atomdata and grab the Er per
         % volt value from there.
         if isempty(options.KDAtomdata)
-           atomdata = uigetfile("X:\StrontiumData\*.mat"); atomdata = atomdata.atomdata;
+           [atomdata_path, fpath] = uigetfile("X:\StrontiumData\*.mat"); 
+            atomdata = load( fullfile(fpath,atomdata_path) );
+            atomdata = atomdata.atomdata;
         else
            atomdata = options.KDAtomdata; 
         end
         
-        secondaryErPerVolt = arrayfun(@(x) x.fitKD.B, atomdata);
+        secondaryErPerVolt = unique(arrayfun(@(x) x.fitKD.B, atomdata));
     end
     
     voltages = VVAtoVoltage( Lattice915VVA_vector,...
