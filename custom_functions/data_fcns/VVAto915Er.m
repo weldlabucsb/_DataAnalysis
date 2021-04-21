@@ -25,7 +25,8 @@ function s2_values = VVAto915Er(Lattice915VVA_vector, options)
     secondaryPDGain = options.secondaryPDGain;
 
     if options.DefaultKDValue
-        secondaryErPerVolt = 13.4527; % from 3/23
+%         secondaryErPerVolt = 13.4527; % from 3/23
+        secondaryErPerVolt = 12.54; % from 2/27
         atomdata = [];
     else
         % if not using default value, load an atomdata and grab the Er per

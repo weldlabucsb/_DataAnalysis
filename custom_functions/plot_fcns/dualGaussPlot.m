@@ -1,4 +1,4 @@
-function [plot1, plot2, plot3, fitdata, fit_rects] = dualGaussPlot(RunData,RunVars,options)
+function [plot1, plot2, plot3, fitdata, fit_rects, latticeParams] = dualGaussPlot(RunData,RunVars,options)
 %% DUALGAUSSPLOT(RunData, RunVars, options) [one plot per run]
 % Plots a two-gaussian fit to the localized and delocalized fractions of an expansion distribution.
 % Returns an extra output, a struct of the fits and the widths of each
@@ -41,6 +41,23 @@ arguments
     %
     options.SubFigureLineWidth = 3;
 end
+
+%%
+    
+    hbar = 1.054571817e-34; % J * seconds
+    amu = 1.66053906660e-27; % AMU in kg
+    
+    m = 84 * amu;
+    
+    k1064 = 2 * pi / ( 1064 * 1e-9 );
+    ErToJoules = hbar^2 * k1064^2 / ( 2 * m );
+    
+%%
+    
+    s1 = RunData{1}.vars.VVA1064_Er;
+    tau = RunData{1}.ncVars.tau * 1e-6;
+
+%%
 
 RunDatas = cellWrap(RunData);
 frects = options.FitRects;
@@ -176,9 +193,28 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
 %             ));
 %         end
         
-        title(['915VVA = ' num2str(varied_var_values(ii))],'Interpreter','latex')
+%         title(['915VVA = ' num2str(varied_var_values(ii))],'Interpreter','tex')
+        depth915Er(ii) = VVAto915Er(varied_var_values(ii));
+        
+        [J(ii), Delta(ii)] = J_Delta_PiecewiseFit(s1,depth915Er(ii));
+        
+        % convert since Delta in 1064 Ers
+        lambda(ii) = Delta(ii) * ErToJoules * tau / hbar;
+        
+        title(strcat("\lambda = ",num2str(lambda(ii),'%.3f')),'interpreter','tex');
+        
+        set(gca,'YTickLabel',[]);
+        set(gca,'XTickLabel',[]);
+        xlabel('Position','Interpreter','tex');
         
         xlim(options.xLim);
+        
+        latticeParams(ii).J = J(ii);
+        latticeParams(ii).Delta = Delta(ii);
+        latticeParams(ii).lambda = lambda(ii);
+        latticeParams(ii).depth915Er = depth915Er(ii);
+        latticeParams(ii).Lattice915VVA = varied_var_values(ii);
+        
     end
 
 %%
@@ -200,10 +236,10 @@ plot1.fig_filename = fig_filename1;
 
 fig_handle2 = figure();
 
-plot( varied_var_values, widths1, '.-', ...
+plot( lambda, widths1, '.-', ...
     'LineWidth', 1.5)
 hold on;
-plot( varied_var_values, widths2, '.-', ...
+plot( lambda, widths2, '.-', ...
     'LineWidth', 1.5);
 hold off;
 % title( plotTitle( RunData, 'Fitted Component Widths', varied_variable_name, varargin ) );
@@ -237,35 +273,40 @@ plot2.fig_filename = fig_filename2;
 fig_handle3 = figure();
 
 % manually omit the nasty data points where the fits are awful
-atomNumbers1(2:3) = [];
-atomNumbers2(2:3) = [];
-net_atomnums(2:3) = [];
-varied_var_values(2:3) = [];
 
-%% Here I decide how to normalize each atom number datapoint
+% temp = atomNumbers1;
+% atomNumbers1(2:3) = atomNumbers2(2:3);
+% atomNumbers2(2:3) = temp(2:3);
 
+% atomNumbers1(2:3) = [];
+% atomNumbers2(2:3) = [];
+% net_atomnums(2:3) = [];
+% lambda(2:3) = [];
+% varied_var_values(2:3) = [];
+
+% Here I decide how to normalize each atom number datapoint
 
 %%% This section is for normalizing all the points to a single value %%%
 
 % reference_atomNum = max(net_atomnums);
-% reference_atomNum = net_atomnums(1);
+reference_atomNum = net_atomnums(1);
 % reference_atomNum = 1;
 
-% plot( varied_var_values, atomNumbers2 / reference_atomNum, '.-', ...
-%     'LineWidth', 1.5);
+plot( lambda, atomNumbers2 / reference_atomNum, '.-', ...
+    'LineWidth', 1.5);
 % hold on;
-% plot( varied_var_values, atomNumbers1 / reference_atomNum, '.-', ...
+% plot( lambda, atomNumbers1 / reference_atomNum, '.-', ...
 %     'LineWidth', 1.5)
-% plot( varied_var_values, net_atomnums / reference_atomNum, '.-', ...
+% plot( lambda, net_atomnums / reference_atomNum, '.-', ...
 %     'LineWidth', 1.5);
 
 
 %%% This section is for normalizing each datapoint to the sum at that datapoint %%%
-plot( varied_var_values, atomNumbers2 ./ net_atomnums, '.-', ...
-    'LineWidth', 1.5);
-hold on;
-plot( varied_var_values, atomNumbers1 ./ net_atomnums, '.-', ...
-    'LineWidth', 1.5);
+% plot( lambda, atomNumbers2 ./ net_atomnums, '.-', ...
+%     'LineWidth', 1.5);
+% hold on;
+% plot( lambda, atomNumbers1 ./ net_atomnums, '.-', ...
+%     'LineWidth', 1.5);
 
 
 hold off;
