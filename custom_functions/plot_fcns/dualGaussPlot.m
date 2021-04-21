@@ -24,7 +24,7 @@ arguments
     %
     options.LegendLabels = []
     options.LegendTitle string = ""
-    options.Position (1,4) double = [2561, 224, 1920, 963];
+    options.Position (1,4) double = [2, 42, 1278, 1314];
     %
     options.PlotTitle = ""
     %
@@ -103,15 +103,18 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
 
     cmap = colormap( jet( size(ad, 2) ) );
     
-    dim = ceil( sqrt( N ) );
+    dimx = 4;
+    dimy = 5;
     
-    if dim * (dim-1) >= N
-        dimx = dim;
-        dimy = dim - 1;
-    else
-        dimx = dim;
-        dimy = dim;
-    end
+%     dim = ceil( sqrt( N ) );
+%     
+%     if dim * (dim-1) >= N
+%         dimx = dim;
+%         dimy = dim - 1;
+%     else
+%         dimx = dim;
+%         dimy = dim;
+%     end
 
     options.SubplotTitle = 1;
     options.SkipLegend = 1;
@@ -193,6 +196,7 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
 %             ));
 %         end
         
+<<<<<<< Updated upstream
 %         title(['915VVA = ' num2str(varied_var_values(ii))],'Interpreter','tex')
         depth915Er(ii) = VVAto915Er(varied_var_values(ii));
         
@@ -206,6 +210,9 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
         set(gca,'YTickLabel',[]);
         set(gca,'XTickLabel',[]);
         xlabel('Position','Interpreter','tex');
+=======
+        title(['915VVA = ' num2str(varied_var_values(ii))],'Interpreter','latex','FontSize',10)
+>>>>>>> Stashed changes
         
         xlim(options.xLim);
         
