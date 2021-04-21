@@ -1,8 +1,4 @@
-<<<<<<< Updated upstream
-titleFontSize1 = 34;
-=======
 titleFontSize1 = 30;
->>>>>>> Stashed changes
 subfigLineWidth = 3;
 
 titleFontSize = 34;
@@ -70,11 +66,7 @@ for j = 1:length(RunDatas)
             'FontSize',titleFontSize1);
         
     saveFigure( plot1.fig_handle, filenameFromPlotTitle(fig1SaveTitle), saveSubDir, ...
-<<<<<<< Updated upstream
-        'SaveFigFile', 1);
-=======
         'SaveFigFile', 0);
->>>>>>> Stashed changes
 
     %% 
 
@@ -119,13 +111,8 @@ for j = 1:length(RunDatas)
         'FontSize',labelFontSize);
     
     fig2SaveTitle = {"Component Widths vs. Disorder Lattice Depth"; paramstring{j}};
-<<<<<<< Updated upstream
-    saveFigure( plot2.fig_handle, filenameFromPlotTitle(fig2SaveTitle), saveSubDir, ...
-        'SaveFigFile', 1);
-=======
 %     saveFigure( plot2.fig_handle, filenameFromPlotTitle(fig2SaveTitle), saveSubDir, ...
 %         'SaveFigFile', 0);
->>>>>>> Stashed changes
     
     %%
     

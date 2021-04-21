@@ -196,7 +196,6 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
 %             ));
 %         end
         
-<<<<<<< Updated upstream
 %         title(['915VVA = ' num2str(varied_var_values(ii))],'Interpreter','tex')
         depth915Er(ii) = VVAto915Er(varied_var_values(ii));
         
@@ -205,14 +204,11 @@ xConvert = pixelsize/mag * 1e6; % converts the x-axis to um.
         % convert since Delta in 1064 Ers
         lambda(ii) = Delta(ii) * ErToJoules * tau / hbar;
         
-        title(strcat("\lambda = ",num2str(lambda(ii),'%.3f')),'interpreter','tex');
+        title(strcat("\lambda = ",num2str(lambda(ii),'%.3f')),'interpreter','tex','FontSize',10)
         
         set(gca,'YTickLabel',[]);
         set(gca,'XTickLabel',[]);
         xlabel('Position','Interpreter','tex');
-=======
-        title(['915VVA = ' num2str(varied_var_values(ii))],'Interpreter','latex','FontSize',10)
->>>>>>> Stashed changes
         
         xlim(options.xLim);
         
