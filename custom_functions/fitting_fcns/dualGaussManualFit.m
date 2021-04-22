@@ -33,6 +33,8 @@ function [Y, Y1, Y2, roiRect] = dualGaussManualFit(x,y,options)
     if ~isempty(options.OriginalFigureHandle)
         h = options.OriginalFigureHandle;
         tag = true;
+    else
+        tag = false;
     end
     
     %% User-specified guesses
@@ -69,11 +71,14 @@ function [Y, Y1, Y2, roiRect] = dualGaussManualFit(x,y,options)
     end
     
     if options.PlotFit
+        clf;
         hold on
-        plot(x,Y,':','Color',[5 5 5]/255,'LineWidth',options.LineWidth);
+
+        plot(x,y,'-','Color','r','LineWidth',options.LineWidth);
+        plot(x,Y,':','Color','k','LineWidth',options.LineWidth);
         if options.PlotComponents
-            plot(x,Y1,'-.','Color',[50 50 50]/255,'LineWidth',options.LineWidth);
-            plot(x,Y2,'-.','Color',[80 80 80]/255,'LineWidth',options.LineWidth);
+            plot(x,Y1p,'-.','Color',[50 50 50]/255,'LineWidth',options.LineWidth);
+            plot(x,Y2p,'-.','Color',[80 80 80]/255,'LineWidth',options.LineWidth);
         end
         hold off
     end

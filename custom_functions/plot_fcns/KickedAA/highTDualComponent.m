@@ -1,4 +1,4 @@
-function [fig_handle, fig_filename] = freqDisorder2dwidthpcolor(RunDatas,RunVars,options)
+function [fig_handle, fig_filename] = highTDualComponent(RunDatas,RunVars,options)
 % PLOTFUNCTIONTEMPLATE makes a plot from the given RunDatas against the
 % dependent variable {varied_variable_name}. Optional arguments are passed
 % to setupPlot, which automatically puts axes and a legend on the plot,
@@ -61,7 +61,6 @@ varargin = {RunVars.heldvars_all};
     close all;
     first_fig = figure(1);
     cmap = colormap( jet( length(RunDatas) ) );
-
     
    
     cutoff = 0.1;
@@ -152,7 +151,13 @@ varargin = {RunVars.heldvars_all};
             if (fracWidths{j}(ii)  > 35)
                 fracWidths{j}(ii) = NaN;
             end
-              
+            if(1)
+                [Y, Y1, Y2, frects{j,ii}] = dualGaussManualFit(X{j},avg_atomdata{j}(ii).summedODy,...
+                    'PlotComponents',1,'PlotFit',1);
+                becFit{j,ii} = Y1;
+            end
+            assignin('base','frects',frects); %make sure to save somehow...
+            save('D:\QCQKR\Figs\frects','frects');
 %               fracWidths{j}(ii) = avg_atomdata{j}(ii).cloudSD_y;
               
               %%%Various conditions to eliminate bad runs
@@ -241,7 +246,7 @@ varargin = {RunVars.heldvars_all};
     
     
     options.yLabel = figure_title_dependent_var;
-    options.xLabel = '915 Depth [$E_R$]';
+    options.xLabel = '915 Depth [E_R]';
     [plot_title, fig_filename] = ...
         setupPlotWrap( ...
             first_fig, ...
