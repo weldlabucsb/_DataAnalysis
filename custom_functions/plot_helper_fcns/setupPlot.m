@@ -52,6 +52,7 @@ arguments
     options.PlotEvery (1,1) double = 1
     options.LegendTitle string = ""
     options.Position (1,4) double = [0, 0, 1280, 720];
+    options.LegendBox = 1;
     %
     options.PlotTitle = ""
     %
@@ -136,7 +137,8 @@ if ~options.SkipLegend
         % Legend Labeling
         lgd = legend( options.LegendLabels , ...
             'FontSize',options.LegendFontSize,...
-            'Interpreter',options.Interpreter);
+            'Interpreter',options.Interpreter,...
+            'Box',options.LegendBox);
         LegendTitle = strrep(options.LegendTitle,'_','');
         title(lgd,LegendTitle,'FontSize',options.LegendFontSize);
     end

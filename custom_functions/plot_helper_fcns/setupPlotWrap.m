@@ -43,7 +43,8 @@ end
         'SubplotTitle',options.SubplotTitle,...
         'SkipLegend',options.SkipLegend,...
         'SkipLabels',options.SkipLabels,...
-        'Interpreter',options.Interpreter);
+        'Interpreter',options.Interpreter,...
+        'LegendBox',options.LegendBox);
     
 end
 
@@ -111,5 +112,8 @@ function options = replaceMissingOptions(options)
     end
     if ~isfield(options,'LegendTitle')
         options.PlotTitle = "";
+    end
+    if ~isfield(options,'LegendBox')
+        options.LegendBox = 1;
     end
 end

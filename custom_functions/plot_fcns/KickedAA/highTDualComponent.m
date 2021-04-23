@@ -29,7 +29,7 @@ arguments
     options.LegendFontSize (1,1) double = 16
     options.TitleFontSize (1,1) double = 20
     %
-    options.Interpreter (1,1) string = "latex" % alt: 'none', 'tex'
+    options.Interpreter (1,1) string = "tex" % alt: 'none', 'tex'
     %
     options.LegendLabels = [] % leave as is if you want auto-labels
     options.LegendTitle string = "" % leave as is if you want auto-title
@@ -62,7 +62,8 @@ varargin = {RunVars.heldvars_all};
     first_fig = figure(1);
     cmap = colormap( jet( length(RunDatas) ) );
     
-   
+    frects = load('D:\QCQKR\Figs\doneFrects');
+    frects = frects.frects;
     cutoff = 0.1;
     frac = 0.75;
     lambdas = zeros(0);
@@ -151,13 +152,17 @@ varargin = {RunVars.heldvars_all};
             if (fracWidths{j}(ii)  > 35)
                 fracWidths{j}(ii) = NaN;
             end
-            if(1)
-                [Y, Y1, Y2, frects{j,ii}] = dualGaussManualFit(X{j},avg_atomdata{j}(ii).summedODy,...
-                    'PlotComponents',1,'PlotFit',1);
-                becFit{j,ii} = Y1;
+            
+            
+            if(0)
+                [Y, Y1, Y2, ~] = dualGaussManualFit(X{j},avg_atomdata{j}(ii).summedODy,...
+                    'PlotComponents',0,'PlotFit',0,'FitRects',frects{j,ii});
+                becFit{j,ii} = Y2;
+                disp(['ii' num2str(ii)])
+                disp(['j' num2str(j)])
             end
-            assignin('base','frects',frects); %make sure to save somehow...
-            save('D:\QCQKR\Figs\frects','frects');
+
+             %make sure to save somehow...
 %               fracWidths{j}(ii) = avg_atomdata{j}(ii).cloudSD_y;
               
               %%%Various conditions to eliminate bad runs
@@ -178,6 +183,14 @@ varargin = {RunVars.heldvars_all};
         fracWidths{j} = smoothdata(fracWidths{j},'movmean',2);
         fracWidthsvec = [fracWidthsvec fracWidths{j}];
     end
+    
+    becFit = load('D:\QCQKR\Figs\becFit');
+    becFit = becFit.becFit;
+    dualCompVec = zeros(0);
+    for j = 1:length(RunDatas)
+        dualCompWidth{j} = smooth(cellfun(@(x) x.sigma2,becFit(j,:)),2)';
+        dualCompVec = [dualCompVec dualCompWidth{j}];
+    end
     %%% End Data Manipulation %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -186,16 +199,28 @@ varargin = {RunVars.heldvars_all};
     figure_title_dependent_var = ['width at ' num2str(frac) ' maximum (summedODy, au)'];
 %     figure_title_dependent_var = ['cloudSD_y'];
     for j = 1:length(RunDatas)
-        plot( Depths915{j}, fracWidths{j}, 'o-',...
+        plot( Depths915{j}, dualCompWidth{j}, 'o-',...
             'LineWidth', options.LineWidth,...
             'Color',cmap(j,:));
 %         set(gca,'yscale','log');
         hold on;
     end
     hold off;
+        
+    options.yLabel = 'Cloud Width (Dual Gauss)';
+    options.xLabel = '915 Depth [E_R]';
+    [plot_title, fig_filename] = ...
+        setupPlotWrap( ...
+            first_fig, ...
+            options, ...
+            RunDatas, ...
+            options.yLabel, ...
+            varied_variable_name, ...
+            legendvars, ...
+            varargin);
     
         sec_fig = figure(2);
-    scatter3(lambdas,Ts,Widthsvec);
+    scatter3(lambdas,Ts,dualCompVec);
     xlabel('Lambda');
     ylabel('T''');
     title('cloudSD_y');
@@ -203,21 +228,24 @@ varargin = {RunVars.heldvars_all};
     hold on;
     plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
     hold off;
+    
 %     xlim([0,2*max(Ts)]);
 %     ylim([0,max(Ts)]);
     
     sixth_fig = figure(6);
 %     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
-    pColorCenteredNonGrid(gca,lambdas,Ts,Widthsvec,1E-6,1E-6);
+    pColorCenteredNonGrid(gca,lambdas,Ts,dualCompVec,1E-6,1E-6);
     
-    zlim([0 5E-5]);
+    caxis([5 10]);
+        xlim([0,4]);
+    ylim([0,1.5]);
     hold on;
     plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
     hold off;
 %     xlim([0 0.02]);
         xlabel('Lambda');
     ylabel('T''');
-    title('cloudSD_y');
+    title('Cloud Width ');
 %     title(['width at ' num2str(frac) ' maximum (summedODy, au)']);
     colorbar;
     
@@ -229,8 +257,10 @@ varargin = {RunVars.heldvars_all};
 
 %     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
 %     zlim([0 5E-5]);
-    pColorCenteredNonGrid(gca,lambdas,Ts,Widthsvec,1E-6,1E-6);
-    caxis([0 5E-5]);
+    pColorCenteredNonGrid(gca,lambdas,Ts,dualCompVec,1E-6,1E-6);
+    caxis([5 10]);
+    xlim([0,4]);
+    ylim([0,1.5]);
 % caxis([0 1E-5]);
 
     hold on;
@@ -238,24 +268,13 @@ varargin = {RunVars.heldvars_all};
     hold off;
 %     xlim([0 0.03]);
         
-    title('cloudSD_y');
+    title('Cloud Width');
 %     title(['width at ' num2str(frac) ' maximum (summedODy, au)']);
     colorbar;
     ylabel('T''');
     xlabel('Lambda');
     
-    
-    options.yLabel = figure_title_dependent_var;
-    options.xLabel = '915 Depth [E_R]';
-    [plot_title, fig_filename] = ...
-        setupPlotWrap( ...
-            first_fig, ...
-            options, ...
-            RunDatas, ...
-            figure_title_dependent_var, ...
-            varied_variable_name, ...
-            legendvars, ...
-            varargin);
+
         
     function depth = vva_to_voltage(vva)
         %take out the non-linearity

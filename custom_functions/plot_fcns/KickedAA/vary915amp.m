@@ -293,6 +293,43 @@ varargin = {RunVars.heldvars_all};
             legendvars, ...
             varargin);
         
+                        seventh_fig = figure(7);
+    for j = 1:length(RunDatas)
+        %for finding the effective 915 depth, using the fit parameters from
+        %the expansion data taken on 3/23
+        plot( phasonAmp{j}*(4*pi/915),Widths{j}.*1E6, 'o-',...
+            'LineWidth', options.LineWidth,...
+            'Color',cmap(j,:));
+%         set(gca,'yscale','log');
+        hold on;
+    end
+    firstBessZeros = besselzero(0,2,1);
+    xline(firstBessZeros(1),'r--','linewidth',2);
+    xline(firstBessZeros(2),'r--','linewidth',2);
+% % 
+%     secondBessZeros = besselzero(1,2,1);
+%     xline(secondBessZeros(1),'b--','linewidth',2);
+%     xline(secondBessZeros(2),'b--','linewidth',2);
+    hold off;
+                    options.yLabel = 'BEC Width ($\mu m$)';
+            options.xLabel = 'Phason Mod. Amplitude ($1/(2k_s)$)';
+%             options.Interpreter = 'tex';
+            options.LegendLabels = ["942 Hz";"471 Hz ";"314 Hz";"$j_{0,1}$";...
+                "$j_{0,2}$"];
+            figure_title_dependent_var = 'BEC Width ($\mu m$)';
+            options.LegendTitle = 'Phase Mod. Freq.';
+            options.FontSize = 30;
+            options.LegendBox = 0;
+            [plot_title, fig_filename] = ...
+        setupPlotWrap( ...
+            seventh_fig, ...
+            options, ...
+            RunDatas, ...
+            figure_title_dependent_var, ...
+            {'Shaking Amplitude'}, ...
+            legendvars, ...
+            varargin);
+        
 %         sec_fig = figure(2);
 %     figure_title_dependent_var = ['cloudSD_y'];
 % %     figure_title_dependent_var = ['cloudSD_y'];
