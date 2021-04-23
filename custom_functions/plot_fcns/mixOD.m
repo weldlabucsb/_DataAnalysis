@@ -23,12 +23,18 @@ end
     
     x_tick_positions = [];
     OD = [];
+    
+    leftside = options.WidthCropOD;
+    rightside = w - options.WidthCropOD;
+    wCropped = rightside - leftside;
+    ODx_range = leftside:rightside;
+    
     for ii = 1:N
-       x_tick_positions(ii) = 1 + w/2 + w * (ii - 1);
+       x_tick_positions(ii) = 1 + wCropped/2 + wCropped * (ii - 1);
        x_tick_label{ii} = num2str(var_vars(ii));
        
        thisOD = [avgOD(ii).OD];
-       OD = [OD, [thisOD(:, (options.WidthCropOD:(w - options.WidthCropOD)))] ];
+       OD = [OD, [thisOD(:,ODx_range)] ];
     end
 
     figH = figure();
