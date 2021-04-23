@@ -8,8 +8,10 @@ arguments
 end
 arguments
     options.FontSize = 16
-    options.Position = [2735, 267, 560, 420];
+    options.Position = [237, 259, 1140, 840]; % window open position
     options.TitleFontSize = 16;
+    options.yLim = [100,350]; %  
+    options.WidthCropOD = 40; % remove this much from either side (horizontally) of the OD
 end
 
     [avgOD, var_vars] = avgRepeats(RunData,RunVars.varied_var,{'OD'});
@@ -24,7 +26,9 @@ end
     for ii = 1:N
        x_tick_positions(ii) = 1 + w/2 + w * (ii - 1);
        x_tick_label{ii} = num2str(var_vars(ii));
-       OD = [OD, [avgOD(ii).OD]];
+       
+       thisOD = [avgOD(ii).OD];
+       OD = [OD, [thisOD(:, (options.WidthCropOD:(w - options.WidthCropOD)))] ];
     end
 
     figH = figure();
@@ -52,6 +56,6 @@ end
     xlabel(RunVars.varied_var,...
         'FontSize',options.FontSize);
     
-    set(gca,'YTickLabel',[]);
+%     set(gca,'YTickLabel',[]);
    
 end
