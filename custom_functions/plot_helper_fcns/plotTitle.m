@@ -27,11 +27,19 @@ end
 % get nested further and further into cell arrays. If it works, don't
 % question it. If it doesn't, let me know and I'll properly unpack the
 % varargins as they are passed between functions.
+if class(varargin{1}) ~= "cell"
+   varargin{1} = {varargin{1}}; 
+end
+
 if ~isempty(varargin)
     if ~isempty(varargin{1})
         held_var_flag = 1;
         for ii = 1:length(varargin{1})
-            held_var_name(ii) = string(varargin{1}{ii});
+            try
+                held_var_name(ii) = string(varargin{1}{ii});
+            catch
+                held_var_name(ii) = string(varargin{1});
+            end
             [~,held_var_value(ii)] = determineIfHeldVarConstant(RunDatas,held_var_name(ii));
             if ii == 1
                 held_var_string = strcat(held_var_name(ii), " - ", num2str( held_var_value(ii) ));

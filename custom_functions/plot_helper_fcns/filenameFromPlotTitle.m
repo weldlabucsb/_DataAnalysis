@@ -13,13 +13,17 @@ function figure_filename = filenameFromPlotTitle(plot_title,options)
 % 4. FileType (string) is the file extension you want. Default: ".png"
 
 arguments
-   plot_title cell 
+   plot_title 
 end
 arguments
    options.Delimiter string = ", "
    options.ReplaceSpaces (1,1) logical = 0
    options.ReplaceSpacesWith string = "_"
    options.FileType string = ".png"
+end
+
+if class(plot_title) == "string" || class(plot_title) == "char"
+   plot_title = {plot_title}; 
 end
 
 % gets rid of comma delimiter if replacing spaces (looks better)
