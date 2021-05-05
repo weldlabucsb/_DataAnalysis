@@ -235,6 +235,26 @@ varargin = {RunVars.heldvars_all};
 %         set(gca,'yscale','log');
         hold on;
     end
+    
+    %try to calculate analytics
+    x = linspace(0,max(phasonAmp{j}*(4*pi/915),[],'all'),100);
+    amps = zeros(length(x));
+% %     for ii = 1:length(x)
+% %         A = besselj(0,x(ii));
+% %         B = 0;
+% %         for hh = 2:2:(round(x(ii)) + 1)
+% %             A = A + abs(besselj(hh,x(ii))).*(4/pi);
+% %         end
+% %         for hh = 1:2:(round(x) + 2)
+% %             B = B + abs(besselj(hh,x(ii))).*(4/pi);
+% %         end
+% %         amps(ii) = sqrt(A.^2 + B.^2);
+% %     end
+    for ii = 1:length(x)
+        amps(ii) = timeavg(x(ii));
+    end
+    
+    
     firstBessZeros = besselzero(0,2,1);
     xline(firstBessZeros(1),'r--','linewidth',2);
     xline(firstBessZeros(2),'r--','linewidth',2);
@@ -260,6 +280,10 @@ varargin = {RunVars.heldvars_all};
             {'Shaking Amplitude'}, ...
             legendvars, ...
             varargin);
+        
+        hold on;
+        plot(x,amps*6);
+        hold off;
         
                 sixth_fig = figure(6);
     for j = 1:length(RunDatas)
@@ -365,8 +389,25 @@ varargin = {RunVars.heldvars_all};
 
         
 
+    function avg = timeavg(h)
+        %INPUT: h is the argument of the bessel functions
+        %find the average value of the below over a period
+        avg = integral(@(x) sqrt((besselj(0,h) + 2*besselj(2,h)*cos(2*2*pi*x)).^2 + ...
+            (2*besselj(3,h)*sin(3*2*pi*x)+ 2*besselj(1,h)*sin(2*pi*x)).^2),0,1);
+
+        avg = integral(@(x) sqrt((besselj(0,h)).^2 + ...
+            (besselj(1,h)*sin(1*2*pi*x)*2).^2),0,1);
         
+%         avg = integral(@(x) sqrt((besselj(0,h)).^2 + ...
+%             (0*besselj(1,h)*sin(1*2*pi*x)*2).^2),0,1);
+
+%         avg = integral(@(x) sqrt((besselj(0,h) + 2*besselj(2,h)*cos(2*2*pi*x) + 2*besselj(4,h)*cos(2*2*pi*x)).^2 + ...
+%             (2*besselj(3,h)*sin(3*2*pi*x)+ 2*besselj(1,h)*sin(2*pi*x)).^2),0,1);
         
+%                 avg = integral(@(x) sqrt((besselj(0,h) + 2*besselj(2,h)*cos(2*2*pi*x) + 2*besselj(4,h)*cos(2*2*pi*x)).^2 + ...
+%             (2*besselj(3,h)*sin(3*2*pi*x)+ 2*besselj(1,h)*sin(2*pi*x) + 2*besselj(5,h)*sin(3*2*pi*x)).^2),0,1);
+    end
+
         
     function depth = vva_to_voltage(vva)
         %take out the non-linearity
