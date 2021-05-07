@@ -1,4 +1,62 @@
 function [pulse_voltage,pulse_Er,bands_power,figure_handle] = designPulse(y,T,tau,Fs,transitions_kHz,options)
+% DESIGNPULSE(y,T,tau,Fs,transitions_kHz,options) takes in a function y(t)
+% which represents a SINGLE pulse of width tau, to be used in a pulse train
+% of period T. It is sampled at sample rate Fs (in Hz).
+%
+% The one-sided amplitude spectrum of a pulse train composed of y(t),
+% repeated every time T, is plotted.
+%
+% The power present in each frequency band specified by transitions_kHz
+% (specified in kHz) is computed using matlab's bandpower function, which
+% if I understand correctly computes the overlap of the power with hamming
+% windows over each frequency range. transitions_kHz should be specified as
+% a cell array of pairs, [f1,f2], which form the edges of the frequency
+% windows in question.
+%
+%  SIGNAL OPTIONS:
+%   
+%   options.Filter: can be specified as "BrickWall" to cut out all power at
+%   the frequency components in the pulse train present in transitions_kHz.
+%
+%   options.Delta: scales the overall amplitude of the signal by a
+%   constant factor.
+%
+%   options.SignalTruncateHalfWidth: Width (measured in tau) at which the
+%   signal is truncated.
+%
+%  SAVING NAME OPTIONS
+%
+%   options.SavePath: default save folder for .mat, .csv, or .fig
+%
+%   options.SaveNameComment: an optional string which gets added to the
+%   default savenames.
+%
+%  CHOOSE WHAT TO SAVE
+%
+%   options.SavePulseMat: toggles saving of .mat which contains the pulses,
+%   parameters, etc.
+%
+%   options.SaveFig: toggles saving of the .fig of the analysis. Also saves
+%   a .png of this.
+%
+%   options.SavePulseCSV: toggles saving the pulse as a CSV in the format
+%   that the KeySight likes.
+%
+%   options.MaxCSVValue: Amplitude is rescaled to options.MaxCSVValue
+%   for maximum resolution, since the KeySight likes integers.
+%
+%   options.RemoveCSVZeroes: Removes zero regions around the signal to
+%   reduce file size to be uploaded to KeySight.
+%
+%  PLOT OPTIONS:
+%
+%   options.ReferencePower: just a ylimit for the power plot.
+%
+%   options.tF: the pulse is repeated out to the time tF before analysis is
+%   conducted.
+%
+%   options.PlotFrequencyRangekHz: right xlim for amplitude spectrum, in kHz.
+
 
 arguments
     y
@@ -10,11 +68,7 @@ end
 arguments
     options.Filter = ""
     options.Delta = 1
-    
-    % plotting options
-    options.ReferencePower = 6.5e-4
-    options.tF = 1e-2 % signal will be duplicated to this many seconds before analysis
-    options.PlotFrequencyRangekHz = 100
+    options.SignalTruncateHalfWidth = 16
     
     % default calibration atomdata
     options.KDAtomdataPath = "X:\StrontiumData\2021\2021.05\05.03\05 - 915 kd\atomdata.mat"
@@ -28,8 +82,14 @@ arguments
     options.SavePulseCSV = 1
     
     %
-    options.RemoveCSVZeroes = 1
     options.MaxCSVValue = 2^(15) - 1;
+    options.RemoveCSVZeroes = 1;
+    
+    % plotting options
+    options.ReferencePower = 6.5e-4
+    options.tF = 1e-2 % signal will be duplicated to this many seconds before analysis
+    options.PlotFrequencyRangekHz = 100
+    
 end
 
     Ts = 1/Fs;
@@ -89,8 +149,8 @@ end
     
     y_pulse = S(pulse_idx);
     
-    cut = 16;
-    savenote_str = strcat("zeroNegatives-flattenEdges-",num2str(cut),"tau");
+    cut = options.SignalTruncateHalfWidth;
+%     savenote_str = strcat("zeroNegatives-flattenEdges-",num2str(cut),"tau");
     cut_cond = (t_oneCycle < -cut*tau) | (t_oneCycle > cut*tau);
     
     y_pulse( y_pulse <= 0 ) = 0;
