@@ -6,15 +6,19 @@ function VVA = VoltageToVVA(voltage_vector, options)
 % Optional arguments:
 %   DefaultKDValue (default = 1): If true, uses values from 3/23.
 %
-%   KDAtomdata (default = []): If nonempty (and if DefaultKDValue = false),
-%   function will extract vva to voltage conversion from the provided
-%   atomdata from a KD run.
-
+%   StrontiumDataPath (default: "X:\StrontiumData\"): If DefaultKDValue =
+%   false, this is where the file picker will default to and ask you to
+%   choose an atomdata.
+%
+%   KDAtomdata (default = []): Provide a KD atomdata (and set
+%   DefaultKDValue = false), function will extract vva to voltage
+%   conversion from the provided atomdata from a KD run.
     arguments
         voltage_vector
     end
     arguments
        options.DefaultKDValue (1,1) logical = 0
+       options.StrontiumDataPath = "X:\StrontiumData\"
        options.KDAtomdata = []
     end
     atomdata = options.KDAtomdata;
@@ -35,7 +39,8 @@ function VVA = VoltageToVVA(voltage_vector, options)
         
         if isempty(atomdata)
             % load a new atomdata if you didn't provide one
-            [atomdata_path, fpath] = uigetfile("X:\StrontiumData\*.mat"); 
+            [atomdata_path, fpath] =...
+                uigetfile(fullfile(options.StrontiumDataPath,"*.mat"),"Choose the KD atomdata."); 
             atomdata = load( fullfile(fpath,atomdata_path) );
             atomdata = atomdata.atomdata;
             options.atomdata = atomdata;

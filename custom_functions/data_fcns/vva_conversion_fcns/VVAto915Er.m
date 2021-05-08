@@ -3,8 +3,12 @@ function s2_values = VVAto915Er(Lattice915VVA_vector, options)
 % into lattice depths (in units of 1064 Ers). 
 %
 % Optional arguments:
-%     DefaultKDValue (default = true): logical, if true use the KD
+%     DefaultKDValue (default = false): logical, if true use the KD
 %     calibration from 3/23 (a recent value).
+%
+%     StrontiumDataPath (default: "X:\StrontiumData\"): If DefaultKDValue =
+%     false, this is where the file picker will default to and ask you to
+%     choose an atomdata.
 %
 %     KDAtomdata (default = empty): You can provide the atomdata from a KD
 %     run to extract the KD calibration for a particular run. (This is only
@@ -19,6 +23,7 @@ function s2_values = VVAto915Er(Lattice915VVA_vector, options)
     end
     arguments
        options.DefaultKDValue (1,1) logical = 0
+       options.StrontiumDataPath = "X:\StrontiumData\"
        options.KDAtomdata = []
        options.secondaryPDGain = 1
     end
@@ -32,7 +37,8 @@ function s2_values = VVAto915Er(Lattice915VVA_vector, options)
         % if not using default value, load an atomdata and grab the Er per
         % volt value from there.
         if isempty(options.KDAtomdata)
-           [atomdata_path, fpath] = uigetfile("X:\StrontiumData\*.mat"); 
+           [atomdata_path, fpath] = ...
+               uigetfile(fullfile(options.StrontiumDataPath,"*.mat"),"Choose the KD atomdata."); 
             atomdata = load( fullfile(fpath,atomdata_path) );
             atomdata = atomdata.atomdata;
         else
