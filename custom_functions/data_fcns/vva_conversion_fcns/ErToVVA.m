@@ -18,7 +18,7 @@ function VVA_vector = ErToVVA(Er915_vector, options)
         Er915_vector
     end
     arguments
-       options.DefaultKDValue (1,1) logical = 1
+       options.DefaultKDValue (1,1) logical = 0
        options.KDAtomdata = []
        options.secondaryPDGain = 1
     end
