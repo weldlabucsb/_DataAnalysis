@@ -14,7 +14,7 @@ function VVA = VoltageToVVA(voltage_vector, options)
         voltage_vector
     end
     arguments
-       options.DefaultKDValue (1,1) logical = 1
+       options.DefaultKDValue (1,1) logical = 0
        options.KDAtomdata = []
     end
     atomdata = options.KDAtomdata;

@@ -18,7 +18,7 @@ function s2_values = VVAto915Er(Lattice915VVA_vector, options)
         Lattice915VVA_vector
     end
     arguments
-       options.DefaultKDValue (1,1) logical = 1
+       options.DefaultKDValue (1,1) logical = 0
        options.KDAtomdata = []
        options.secondaryPDGain = 1
     end
