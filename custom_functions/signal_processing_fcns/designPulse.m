@@ -86,7 +86,7 @@ arguments
     options.SavePulseCSV = 1
     
     %
-    options.VVACalibrateCSVPulse = 1;
+    options.VVACalibratePulse = 0;
     options.MaxCSVValue = 2^(15) - 1;
     options.RemoveCSVZeroes = 1;
     
