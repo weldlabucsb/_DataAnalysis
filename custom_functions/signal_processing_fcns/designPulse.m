@@ -60,6 +60,11 @@ function [pulse_voltage,pulse_Er,bands_power,figure_handle] = designPulse(y,T,ta
 %   conducted.
 %
 %   options.PlotFrequencyRangekHz: right xlim for amplitude spectrum, in kHz.
+%
+%  OTHER OPTIONS:
+%
+%   options.useGPU (default = false): toggles use of GPU arrays to speed up
+%   FFTs.
 
 
 arguments
@@ -94,6 +99,8 @@ arguments
     options.ReferencePower = 6.5e-4
     options.tF = 1e-2 % signal will be duplicated to this many seconds before analysis
     options.PlotFrequencyRangekHz = 100
+    
+    options.useGPU = 0
     
 end
 
@@ -182,8 +189,10 @@ end
     S = repmat(pulse_Er,1,Ncycles);
     
     %%
-    
-    S = gpuArray(S);
+    if options.useGPU
+        S = gpuArray(S);
+    end
+        
     Y = fft(S);
     
     P2 = abs(Y/L);
