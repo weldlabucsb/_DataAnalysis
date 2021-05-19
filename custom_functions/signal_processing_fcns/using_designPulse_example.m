@@ -6,6 +6,10 @@ tF = 1e-2;
 
 %%
 
+outfolder = "G:\My Drive\_WeldLab\Code\spectral_engineering\results\compare\singles";
+
+%%
+
 [~,transitions,~] = bandcalc(10);
 
 %%
@@ -63,7 +67,6 @@ if filter ~= ""
     pulsetype = strcat(pulsetype,"-",filter);
 end
 
-outfolder = "G:\My Drive\_WeldLab\Code\spectral_engineering\results\compare\singles";
 fname = strcat(pulsetype,"-T",num2str(T*1e6),...
     ",tau",num2str(tau*1e6),".png");
 

@@ -33,19 +33,23 @@ function [pulse_voltage,pulse_Er,bands_power,figure_handle] = designPulse(y,T,ta
 %
 %  CHOOSE WHAT TO SAVE
 %
-%   options.SavePulseMat: toggles saving of .mat which contains the pulses,
+%   options.VVACalibrateCSVPulse (default = false): toggles whether the
+%   output pulse_voltage is scaled to account for VVA nonlinearity using a
+%   KD calibration run. If false, pulse_voltage = pulse_Er.
+%
+%   options.SavePulseMat (default = true): toggles saving of .mat which contains the pulses,
 %   parameters, etc.
 %
-%   options.SaveFig: toggles saving of the .fig of the analysis. Also saves
+%   options.SaveFig (default = true): toggles saving of the .fig of the analysis. Also saves
 %   a .png of this.
 %
-%   options.SavePulseCSV: toggles saving the pulse as a CSV in the format
+%   options.SavePulseCSV (default = true): toggles saving the pulse as a CSV in the format
 %   that the KeySight likes.
 %
-%   options.MaxCSVValue: Amplitude is rescaled to options.MaxCSVValue
+%   options.MaxCSVValue (default = 1): Amplitude is rescaled to options.MaxCSVValue
 %   for maximum resolution, since the KeySight likes integers.
 %
-%   options.RemoveCSVZeroes: Removes zero regions around the signal to
+%   options.RemoveCSVZeroes (default = true): Removes zero regions around the signal to
 %   reduce file size to be uploaded to KeySight.
 %
 %  PLOT OPTIONS:
@@ -82,6 +86,7 @@ arguments
     options.SavePulseCSV = 1
     
     %
+    options.VVACalibrateCSVPulse = 1;
     options.MaxCSVValue = 2^(15) - 1;
     options.RemoveCSVZeroes = 1;
     
@@ -158,10 +163,14 @@ end
     
     %%
     
-    [adName, adPath] = uigetfile(options.KDAtomdataPath,"Select KD calibration atomdata.");
-    
-    KDatomdata = load( fullfile(adPath,adName) ); KDatomdata = KDatomdata.atomdata;
-    y_voltage = ErToVVA(y_pulse,'DefaultKDValue',0,'KDAtomdata',KDatomdata);
+    if options.VVACalibratePulse
+        [adName, adPath] = uigetfile(options.KDAtomdataPath,"Select KD calibration atomdata.");
+
+        KDatomdata = load( fullfile(adPath,adName) ); KDatomdata = KDatomdata.atomdata;
+        y_voltage = ErToVVA(y_pulse,'DefaultKDValue',0,'KDAtomdata',KDatomdata);
+    else
+        y_voltage = y_pulse;
+    end
     
     %%
     
@@ -308,7 +317,7 @@ end
     %%%%%%% CSV
     
     if options.SavePulseCSV
-       
+        
         thismax = max(pulse_voltage);
         newmax = options.MaxCSVValue;
         
