@@ -56,6 +56,11 @@ function [pulse_voltage,pulse_Er,bands_power,figure_handle] = easyPulse(T,tau,op
 %
 %   options.useGPU (default = false): toggles use of GPU arrays to speed up
 %   FFTs.
+%
+%   options.SkipFilepicker (default = false): toggles whether you'll be
+%   asked where to save the file, or if it will save to the default
+%   (options.SavePath, with default format which labels T, tau, and sample
+%   rate).
 
 arguments
    T (1,1) double
@@ -87,6 +92,7 @@ arguments
     options.RemoveCSVZeroes = 1;
     
     options.useGPU = 0
+    options.SkipFilepicker = 0
 end
 
 Fs = options.Fs;
@@ -147,7 +153,8 @@ end
     "MaxCSVValue",options.MaxCSVValue,...
     "RemoveCSVZeroes",options.RemoveCSVZeroes,...
     "useGPU",options.useGPU,...
-    "SaveNameComment",options.SaveNameComment);
+    "SaveNameComment",options.SaveNameComment,...
+    "SkipFilepicker",options.SkipFilepicker);
 
 %%
 

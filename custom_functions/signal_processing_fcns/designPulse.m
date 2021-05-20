@@ -65,7 +65,11 @@ function [pulse_voltage,pulse_Er,bands_power,figure_handle] = designPulse(y,T,ta
 %
 %   options.useGPU (default = false): toggles use of GPU arrays to speed up
 %   FFTs.
-
+%
+%   options.SkipFilepicker (default = false): toggles whether you'll be
+%   asked where to save the file, or if it will save to the default
+%   (options.SavePath, with default format which labels T, tau, and sample
+%   rate).
 
 arguments
     y
@@ -101,6 +105,7 @@ arguments
     options.PlotFrequencyRangekHz = 100
     
     options.useGPU = 0
+    options.SkipFilePicker = 0
     
 end
 
@@ -158,7 +163,7 @@ end
             thisWindow = transitions_kHz{ii};
             S = bandstop(S,thisWindow,Fs);
         end
-    else
+    elseif options.Filter ~= ""
         error(strcat("Filter option ",options.Filter," is not a supported filter. Choose from ""BrickWall"" or """" (none)"));
     end
     
@@ -310,16 +315,22 @@ end
             "T-",num2str(T*1e6),...
             "_tau-",num2str(tau*1e6),...
             "_",options.Filter,...
-            "_samprateHz-",num2str(1e9,'%1.0e'),...
+            "_samprateHz-",num2str(Fs,'%1.0e'),...
             comment_str);
         
     %%%%%%% Pulse .mat
         
     if options.SavePulseMat
-       [fname, fpath] = ...
+        if options.SkipFilePicker
+            savename = fullfile(options.SavePath, strcat(pulseName,".mat") );
+        else
+            [fname, fpath] = ...
            uiputfile( fullfile(options.SavePath, strcat(pulseName,".mat") ), ...
             "Select .mat save location.");
-        save( fullfile(fpath,fname), ...
+            savename = fullfile(fpath,fname);
+        end
+       
+        save( savename, ...
             'pulse_voltage', 'pulse_Er', 'y', ...
             'T', 'tau', 'Fs', 't_oneCycle', 'f', ...
             'transitions_kHz', 'bands_power');
@@ -328,11 +339,19 @@ end
     %%%%%%% Fig, PNG
     
     if options.SaveFig
-        [fname, fpath] = ...
+        
+        if options.SkipFilePicker
+            savename = fullfile(options.SavePath, strcat(pulseName,".fig") );
+        else
+            [fname, fpath] = ...
            uiputfile( fullfile(options.SavePath, strcat(pulseName,".fig") ), ...
             "Select .fig save location.");
-        saveas( figure_handle, fullpath(fpath,fname)  );
-        saveas( figure_handle, strrep(fullpath(fpath,fname),".fig",".png") );
+            savename = fullfile(fpath,fname);
+        end
+        
+        
+        saveas( figure_handle, savename  );
+        saveas( figure_handle, strrep(savename,".fig",".png") );
     end
     
     %%%%%%% CSV
@@ -360,10 +379,15 @@ end
             pulse_voltage_out = pulse_voltage_out(idx1:idx2);
         end
         
-        [fname, fpath] = uiputfile( fullfile(options.SavePath, strcat(pulseName,".csv") ), ...
+        if options.SkipFilePicker
+            savename = fullfile(options.SavePath, strcat(pulseName,".csv") );
+        else
+            [fname, fpath] = uiputfile( fullfile(options.SavePath, strcat(pulseName,".csv") ), ...
             "Select CSV save location.");
+            savename = fullfile(fpath,fname);
+        end
         
-        csvwrite( fullfile(fpath, fname), pulse_voltage_out' );
+        csvwrite( savename, pulse_voltage_out' );
         
     end
     
