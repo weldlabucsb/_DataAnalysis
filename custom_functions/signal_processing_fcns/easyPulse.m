@@ -34,6 +34,9 @@ function [pulse_voltage,pulse_Er,bands_power,figure_handle] = easyPulse(T,tau,op
 %
 %   options.SavePath: default save folder for .mat, .csv, or .fig
 %
+%   options.SaveNameComment (default = ""): appended to filenames for
+%   labeling purposes.
+%
 %  CHOOSE WHAT TO SAVE
 %
 %   options.VVACalibratePulse (default = false): toggles whether the
@@ -75,6 +78,8 @@ arguments
     options.SavePulseMat = 1
     options.SaveFig = 0
     options.SavePulseCSV = 1
+    
+    options.SaveNameComment = ""
     
     %
     options.VVACalibratePulse = 0;
@@ -141,7 +146,8 @@ end
     "SavePulseCSV",options.SavePulseCSV,...
     "MaxCSVValue",options.MaxCSVValue,...
     "RemoveCSVZeroes",options.RemoveCSVZeroes,...
-    "useGPU",options.useGPU);
+    "useGPU",options.useGPU,...
+    "SaveNameComment",options.SaveNameComment);
 
 %%
 

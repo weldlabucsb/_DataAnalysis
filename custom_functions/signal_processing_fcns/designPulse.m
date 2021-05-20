@@ -84,7 +84,7 @@ arguments
     
     % saving options
     options.SavePath = "G:\My Drive\_WeldLab\Code\_Analysis\pulses";
-    options.SaveNameComment = "pulse"
+    options.SaveNameComment = ""
     
     options.SavePulseMat = 1
     options.SaveFig = 0
