@@ -19,7 +19,7 @@ function [pulse_voltage,pulse_Er,bands_power,figure_handle] = designPulse(y,T,ta
 %   the frequency components in the pulse train present in transitions_kHz.
 %
 %   options.Delta: scales the overall amplitude of the signal by a
-%   constant factor.
+%   constant factor. (I think this option is broken)
 %
 %   options.SignalTruncateHalfWidth: Width (measured in tau) at which the
 %   signal is truncated.
@@ -33,7 +33,7 @@ function [pulse_voltage,pulse_Er,bands_power,figure_handle] = designPulse(y,T,ta
 %
 %  CHOOSE WHAT TO SAVE
 %
-%   options.VVACalibrateCSVPulse (default = false): toggles whether the
+%   options.VVACalibratePulse (default = false): toggles whether the
 %   output pulse_voltage is scaled to account for VVA nonlinearity using a
 %   KD calibration run. If false, pulse_voltage = pulse_Er.
 %
@@ -46,7 +46,7 @@ function [pulse_voltage,pulse_Er,bands_power,figure_handle] = designPulse(y,T,ta
 %   options.SavePulseCSV (default = true): toggles saving the pulse as a CSV in the format
 %   that the KeySight likes.
 %
-%   options.MaxCSVValue (default = 1): Amplitude is rescaled to options.MaxCSVValue
+%   options.MaxCSVValue (default = 2^15 - 1): Amplitude is rescaled to options.MaxCSVValue
 %   for maximum resolution, since the KeySight likes integers.
 %
 %   options.RemoveCSVZeroes (default = true): Removes zero regions around the signal to
@@ -65,7 +65,11 @@ function [pulse_voltage,pulse_Er,bands_power,figure_handle] = designPulse(y,T,ta
 %
 %   options.useGPU (default = false): toggles use of GPU arrays to speed up
 %   FFTs.
-
+%
+%   options.SkipFilepicker (default = false): toggles whether you'll be
+%   asked where to save the file, or if it will save to the default
+%   (options.SavePath, with default format which labels T, tau, and sample
+%   rate).
 
 arguments
     y
@@ -83,7 +87,7 @@ arguments
     options.KDAtomdataPath = "X:\StrontiumData\2021\2021.05\05.03\05 - 915 kd\atomdata.mat"
     
     % saving options
-    options.SavePath = "G:\My Drive\_WeldLab\Code\spectral_engineering\output";
+    options.SavePath = "G:\My Drive\_WeldLab\Code\_Analysis\pulses";
     options.SaveNameComment = ""
     
     options.SavePulseMat = 1
@@ -101,6 +105,7 @@ arguments
     options.PlotFrequencyRangekHz = 100
     
     options.useGPU = 0
+    options.SkipFilePicker = 0
     
 end
 
@@ -110,6 +115,9 @@ end
     %%
 
     Ncycles = round(options.tF/T);
+    if Ncycles == 0
+        Ncycles = 1;
+    end
     Ncycle_time = Ncycles * T;
 
     t_oneCycle = [0:Ts:T] - T/2;
@@ -155,6 +163,8 @@ end
             thisWindow = transitions_kHz{ii};
             S = bandstop(S,thisWindow,Fs);
         end
+    elseif options.Filter ~= ""
+        error(strcat("Filter option ",options.Filter," is not a supported filter. Choose from ""BrickWall"" or """" (none)"));
     end
     
     %% 
@@ -292,22 +302,35 @@ end
         comment_str = "";
     end
     
+%     pulseName = strcat("pulse_",...
+%             "T-",num2str(T*1e6),...
+%             "_tau-",num2str(tau*1e6),...
+%             "_Delta-",num2str(options.Delta),...
+%             "_",options.Filter,...
+%             "_samprateHz-",num2str(1e9,'%1.0e'),...
+%             "_maxSignalV-",num2str(max(pulse_voltage_out)),...
+%             comment_str);
+
     pulseName = strcat("pulse_",...
             "T-",num2str(T*1e6),...
             "_tau-",num2str(tau*1e6),...
-            "_Delta-",num2str(options.Delta),...
             "_",options.Filter,...
-            "_samprateHz-",num2str(1e9,'%1.0e'),...
-            "_maxSignalV-",num2str(max(pulse_voltage_out)),...
+            "_samprateHz-",num2str(Fs,'%1.0e'),...
             comment_str);
         
     %%%%%%% Pulse .mat
         
     if options.SavePulseMat
-       [fname, fpath] = ...
+        if options.SkipFilePicker
+            savename = fullfile(options.SavePath, strcat(pulseName,".mat") );
+        else
+            [fname, fpath] = ...
            uiputfile( fullfile(options.SavePath, strcat(pulseName,".mat") ), ...
             "Select .mat save location.");
-        save( fullfile(fpath,fname), ...
+            savename = fullfile(fpath,fname);
+        end
+       
+        save( savename, ...
             'pulse_voltage', 'pulse_Er', 'y', ...
             'T', 'tau', 'Fs', 't_oneCycle', 'f', ...
             'transitions_kHz', 'bands_power');
@@ -316,11 +339,19 @@ end
     %%%%%%% Fig, PNG
     
     if options.SaveFig
-        [fname, fpath] = ...
+        
+        if options.SkipFilePicker
+            savename = fullfile(options.SavePath, strcat(pulseName,".fig") );
+        else
+            [fname, fpath] = ...
            uiputfile( fullfile(options.SavePath, strcat(pulseName,".fig") ), ...
             "Select .fig save location.");
-        saveas( figure_handle, fullpath(fpath,fname)  );
-        saveas( figure_handle, strrep(fullpath(fpath,fname),".fig",".png") );
+            savename = fullfile(fpath,fname);
+        end
+        
+        
+        saveas( figure_handle, savename  );
+        saveas( figure_handle, strrep(savename,".fig",".png") );
     end
     
     %%%%%%% CSV
@@ -341,10 +372,22 @@ end
         
         pulse_voltage_out = round(pulse_voltage_out);
         
-        [fname, fpath] = uiputfile( fullfile(options.SavePath, strcat(pulseName,".csv") ), ...
-            "Select CSV save location.");
+        if options.RemoveCSVZeroes
+            findarray = logical(pulse_voltage_out);
+            idx1 = find(findarray,1,'first');
+            idx2 = find(findarray,1,'last');
+            pulse_voltage_out = pulse_voltage_out(idx1:idx2);
+        end
         
-        csvwrite( fullfile(fpath, fname), pulse_voltage_out' );
+        if options.SkipFilePicker
+            savename = fullfile(options.SavePath, strcat(pulseName,".csv") );
+        else
+            [fname, fpath] = uiputfile( fullfile(options.SavePath, strcat(pulseName,".csv") ), ...
+            "Select CSV save location.");
+            savename = fullfile(fpath,fname);
+        end
+        
+        csvwrite( savename, pulse_voltage_out' );
         
     end
     
