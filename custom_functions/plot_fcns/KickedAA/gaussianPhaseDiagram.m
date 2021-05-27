@@ -1,4 +1,4 @@
-function [fig_handle, fig_filename] = freqDisorder2dwidthpcolor(RunDatas,RunVars,options)
+function [fig_handle, fig_filename] = gaussianPhaseDiagram(RunDatas,RunVars,options)
 % PLOTFUNCTIONTEMPLATE makes a plot from the given RunDatas against the
 % dependent variable {varied_variable_name}. Optional arguments are passed
 % to setupPlot, which automatically puts axes and a legend on the plot,
@@ -106,33 +106,34 @@ varargin = {RunVars.heldvars_all};
             secondaryErPerVolt = 12.54;
 
             secondaryPDGain = 1; 
-            
-            %%%DONT USE (unless fit is good)
-% % % % % %             if(isfield(atomdata(ii).vars,'Scope_CH2_V0'))
-% % % % % % %                 disp('scope variable exists')
-% % % % % %                 secondaryPDPulseAmp = atomdata(ii).vars.('Scope_CH2_V0');
-% % % % % %                 s2 = secondaryPDPulseAmp*secondaryErPerVolt/secondaryPDGain;
-% % % % % %             else
-% % % % % %                 s2 = vva_to_voltage(atomdata(ii).vars.Lattice915VVA)*secondaryErPerVolt/secondaryPDGain;
-% % % % % % %                 s2 = secondaryErPerVolt*vva_to_voltage(atomdata(ii).vars.Lattice915VVA);
-% % % % % %             end
 
-            s2 = vva_to_voltage(atomdata(ii).vars.Lattice915VVA)*secondaryErPerVolt/secondaryPDGain;
+            maxs2 = vva_to_voltage(atomdata(ii).vars.Lattice915VVA)*secondaryErPerVolt/secondaryPDGain;
             la1 = 1064;
             la2 = 915;
             
-            [J, Delta]  = J_Delta_PiecewiseFit(s1,s2);
+            %%need to calculate Delta as a function of time
+            
+            [J, Delta]  = J_Delta_PiecewiseFit(s1,maxs2);
+            
+            tic
+            [lambdaInt] = calc_lambda_gaussian(s1,maxs2,RunDatas{j}.vars.PulseWidthus);
+            toc
             
             hbar_Er1064 = 7.578e-5; %Units of Er*seconds
             hbar_Er1064_us = 75.78; %hbar in units of Er*microseconds
             
-            tau_us = RunDatas{j}.ncVars.tau;
-            tau = tau_us*J/hbar_Er1064_us;
             
-            T_us = RunDatas{j}.ncVars.T;
-            lambdas(length(lambdas)+1)  = Delta*tau/J;
+%             tau_us = RunDatas{j}.ncVars.tau;
+%             tau = tau_us*J/hbar_Er1064_us;
+            if(1)
+                T_us = RunDatas{j}.vars.KickPeriodms*1E3;
+            else
+                T_us = RunDatas{j}.vars.KickPeriodus;
+            end
+%             lambdas(length(lambdas)+1)  = Delta*tau/J;
+            lambdas(length(lambdas)+1)  = lambdaInt/(hbar_Er1064_us);
             Ts(length(Ts)+1) = T_us*J/hbar_Er1064_us;
-            Depths915{j}(ii) = s2;
+            Depths915{j}(ii) = maxs2;
             max_ratio{j}(ii) = mean(abs(avg_atomdata{j}(ii).summedODy),'all')/max(abs(avg_atomdata{j}(ii).summedODy),[],'all');
             [width, center] = fracWidth( X{j}, avg_atomdata{j}(ii).summedODy, frac,'PlotWidth',0);
 %             if max_ratio{j}(ii) > cutoff
@@ -205,7 +206,7 @@ varargin = {RunVars.heldvars_all};
 %     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
     pColorCenteredNonGrid(gca,lambdas,Ts,Widthsvec,1E-6,1E-6);
     
-%     zlim([0 5E-5]);
+%     colormap('parula');
     hold on;
     plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
     hold off;
@@ -215,17 +216,22 @@ varargin = {RunVars.heldvars_all};
     title('cloudSD_y');
 %     title(['width at ' num2str(frac) ' maximum (summedODy, au)']);
     colorbar;
-    
+%     caxis([1 4]*1E-5);
     %try different colormap 
             sev_fig = figure(7);
     mycolormap = customcolormap(linspace(0,1,11), {'#68011d','#b5172f','#d75f4e','#f7a580','#fedbc9','#f5f9f3','#d5e2f0','#93c5dc','#4295c1','#2265ad','#062e61'});
     colormap(mycolormap);
+    if(1)
+        colormap(getEditedUSA());
+    end
+%     JetWhite = getJetWhite();
+%     colormap(JetWhite);
 %     axis off;
 
 %     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
 %     zlim([0 5E-5]);
     pColorCenteredNonGrid(gca,lambdas,Ts,Widthsvec,1E-6,1E-6);
-    caxis([0 5E-5]);
+%     caxis([.8 4.6].*1E-5);
 % caxis([0 1E-5]);
 
     hold on;
@@ -238,30 +244,7 @@ varargin = {RunVars.heldvars_all};
     colorbar;
     ylabel('T''');
     xlabel('Lambda');
-    
-    
-        eigh_fig = figure(8);
-    %loaded with Esat colormap
-    JetWhite = getJetWhite();
-    colormap(JetWhite);
-%     axis off;
-
-%     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
-%     zlim([0 5E-5]);
-    pColorCenteredNonGrid(gca,lambdas,Ts,Widthsvec,1E-6,1E-6);
-    caxis([0 5].*1E-5);
-% caxis([0 1E-5]);
-
-    hold on;
-    plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
-    hold off;
-%     xlim([0 0.03]);
-        
-    title('cloudSD_y');
-%     title(['width at ' num2str(frac) ' maximum (summedODy, au)']);
-    colorbar;
-    ylabel('T''');
-    xlabel('Lambda');
+   
     
     options.yLabel = figure_title_dependent_var;
     options.xLabel = '915 Depth [$E_R$]';
@@ -283,12 +266,16 @@ varargin = {RunVars.heldvars_all};
         
         
         %for the 2/27 data
-        V0s = [0.0297611340889169,0.0320000000016725,0.0360000000000222,0.0620546063258612,0.0719909967293660,0.100286258828503,0.132132920348285,0.160270640980708,0.194334313681227,0.216658564267728,0.230893463124005,0.254476729560220,0.267785474698420,0.284191264615461,0.300403320122237,0.316392760370631,0.335449780883353,0.341275399292686,0.355480424302642,0.370968685011421,0.386239458185895,0.393433865352977,0.408399987686944];
-        vvas = [1,1.80000000000000,1.90000000000000,2,2.10000000000000,2.20000000000000,2.40000000000000,2.60000000000000,2.80000000000000,3,3.10000000000000,3.30000000000000,3.40000000000000,3.60000000000000,3.80000000000000,4,4.20000000000000,4.40000000000000,4.70000000000000,5,5.50000000000000,6,7.50000000000000];
+%         V0s = [0.0297611340889169,0.0320000000016725,0.0360000000000222,0.0620546063258612,0.0719909967293660,0.100286258828503,0.132132920348285,0.160270640980708,0.194334313681227,0.216658564267728,0.230893463124005,0.254476729560220,0.267785474698420,0.284191264615461,0.300403320122237,0.316392760370631,0.335449780883353,0.341275399292686,0.355480424302642,0.370968685011421,0.386239458185895,0.393433865352977,0.408399987686944];
+%         vvas = [1,1.80000000000000,1.90000000000000,2,2.10000000000000,2.20000000000000,2.40000000000000,2.60000000000000,2.80000000000000,3,3.10000000000000,3.30000000000000,3.40000000000000,3.60000000000000,3.80000000000000,4,4.20000000000000,4.40000000000000,4.70000000000000,5,5.50000000000000,6,7.50000000000000];
         
                 %for 3/23 data
 %         V0s = [0,0.0736783508103853,0.0919325233215497,0.140775622496791,0.177681318284420,0.213707250228924,0.244105225971579,0.256827061740513,0.278925131974928,0.289462482914506,0.315246479230482,0.332958057066155,0.346744790852344,0.332958057066155,0.381614474966698,0.402993079662267,0.408784741151747,0.427199505248519,0.437485713621218,0.452582892831114];
 %         vvas = [1,2,2.10000000000000,2.40000000000000,2.60000000000000,2.80000000000000,3,3.10000000000000,3.30000000000000,3.40000000000000,3.60000000000000,3.80000000000000,4,4.20000000000000,4.40000000000000,4.70000000000000,5,5.50000000000000,6,7.50000000000000];
+        
+        %for the 5/14 data high T gaussian
+        V0s = [0,0,0,0,0.0225420152738251,0.0445506004359174,0.0718506811701262,0.0998818890043089,0.128319872315940,0.159248561644999,0.179136088864629,0.203757773029873,0.233826967155306,0.257229277775811,0.278172055574275,0.302490073844188,0.317617061436525,0.337752248484241,0.347947559825373,0.375490795413314,0.372620443717540];
+        vvas = [0,1,1.20000000000000,1.50000000000000,2,2.50000000000000,3,3.50000000000000,4,4.50000000000000,5,5.50000000000000,6,6.50000000000000,7,7.50000000000000,8,8.50000000000000,9,9.50000000000000,10];
         
         
         depth = interp1(vvas,V0s,vva);        

@@ -1,4 +1,4 @@
-function [f,P1,power]=  drive_fft_analysis(T,tau)
+function [f,P1,power]=  drive_fft_analysis_scaled(T,tau)
 %now in terms of KickedAA Params
 if (nargin < 2)
     T = 14E-6; %sec
@@ -9,10 +9,10 @@ end
 %fourier power I think. For the decay rate plots we care about versus time
 %not versus kick number so I think that constant lattHold makes sense. The
 %first good fourier comparison plot that was sent out used the following:'
-lattHold = 1E-3; %sec
+lattHold = 0.5E-1; %sec
 % lattHold = T*100; %sec
 
-sampPer = round(25*(T/4E-6)); %how many samples per period
+sampPer = 50; %how many samples per period
 sampPer = sampPer + mod(sampPer,2);
 duty = tau/T;
 cycles = round(lattHold/T);
@@ -32,7 +32,6 @@ P1(2:end-1) = 2*P1(2:end-1);
 power = abs(Y).^2/L;
 power = power(1:L/2 + 1);
 power(1) = 0;
-
 f = Fs*(0:(L/2))/L;
 P1(1) = 0; %remove constant component
 % plot(f./1E3,P1);
