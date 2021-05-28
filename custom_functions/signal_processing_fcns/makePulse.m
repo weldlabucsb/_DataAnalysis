@@ -6,7 +6,7 @@ arguments
     truncated_pulsewidth_us = 100
 end
 arguments
-    options.UseGPU = 1 % use GPU for FFTs. Disable if low on memory or do not have NVIDIA GPU.
+    options.UseGPU = 0 % use GPU for FFTs. Disable if low on memory or do not have NVIDIA GPU.
     
     options.Fs = 1e7 % in Hz
     options.NSamples = 31 %
@@ -17,9 +17,9 @@ arguments
     options.PeriodsGraphed = 3 % how many periods (T) of the pulse to plot.
     options.PlotBandRectangles = 1 % boolean, whether or not to plot the bands as shaded rectangles
     
-    options.SaveDirectory = "G:\My Drive\_WeldLab\Code\_Analysis\pulses\pulseoutput\pulse_out" % default save path
+    options.SaveDirectory = "G:\My Drive\_WeldLab\Code\_Analysis\pulses\pulseoutput" % default save path
     options.SkipFilePicker = 1 % if false, opens file picker for placing each saved file
-    options.OpenSaveDirectory = 1 % if true, opens save directory after saving on Windows machines.
+    options.OpenSaveDirectory = 0 % if true, opens save directory after saving on Windows machines.
     
     options.SkipPulseChoiceDialog = 1 % if false, asks whether you want to save Gaussian, filtered gaussian, or truncated filtered gauss pulse.
     
@@ -130,6 +130,7 @@ end
     plot(Nt*1e6,Y_filt,'Color',linecolors(3,:),'LineWidth',2);
     plot(Nt*1e6,Y_truncated,'Color',linecolors(4,:),'LineWidth',2);
 
+    title( strcat("T = ", num2str(T_us*1e6), ", \tau = ", num2str(tau_us*1e6), ", N = ", num2str(NSamples)) );
     ylabel("Pulse Amplitude");
     xlabel("Time (us)");
     xlim( [-1,1]*(nT*T_us*1e6)/2 );
