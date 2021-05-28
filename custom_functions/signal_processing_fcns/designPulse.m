@@ -24,6 +24,9 @@ function [pulse_voltage,pulse_Er,bands_power,figure_handle] = designPulse(y,T,ta
 %   options.SignalTruncateHalfWidth: Width (measured in tau) at which the
 %   signal is truncated.
 %
+%   options.SquareRootWaveform (default = true): square-roots the waveform
+%   pulse_voltage before exporting to csv.
+%
 %  SAVING NAME OPTIONS
 %
 %   options.SavePath: default save folder for .mat, .csv, or .fig
@@ -83,6 +86,8 @@ arguments
     options.Delta = 1
     options.SignalTruncateHalfWidth = 16
     
+    options.SquareRootWaveform = 1
+   
     % default calibration atomdata
     options.KDAtomdataPath = "X:\StrontiumData\2021\2021.05\05.03\05 - 915 kd\atomdata.mat"
     
@@ -100,6 +105,13 @@ arguments
     options.RemoveCSVZeroes = 1;
     
     % plotting options
+    options.LineWidth = 2
+    
+    options.FigurePosition = [-835, 368, 521, 508]
+    
+    options.BandRectangles = 0 % if false, bands plotted as hamming windows
+    options.SkipPowerPlot = 0
+    
     options.ReferencePower = 6.5e-4
     options.tF = 1e-2 % signal will be duplicated to this many seconds before analysis
     options.PlotFrequencyRangekHz = 100
@@ -226,30 +238,33 @@ end
     
     figure_handle = figure();
     clf;
-    tiledlayout(3,1, 'Padding', 'none', 'TileSpacing', 'compact');
-    set(figure_handle,'Position',[-889, 303, 703, 598]);
+    figNum = 3 - options.SkipPowerPlot;
+    tiledlayout(figNum,1, 'Padding', 'none', 'TileSpacing', 'compact');
+    set(figure_handle,'Position',options.FigurePosition);
     
     %%%%%%%%%%%%%%%%%%
     % plot the pulse
     nexttile;
-    plot(t_oneCycle*1e6,pulse_Er);
-    hold on;
-    plot(t_oneCycle*1e6,pulse_voltage);
-    hold off;
+    plot(t_oneCycle*1e6,pulse_Er,'LineWidth',options.LineWidth);
+    
+    if options.VVACalibratePulse
+        hold on;
+        plot(t_oneCycle*1e6,pulse_voltage);
+        hold off;
+        leg = ["Er","Voltage"];
+        lgnd = legend(leg);
+        set(lgnd,'Location','northwest');
+    end
+    
     xlim(50*tau/2*1e6*[-1,1]);
     Ylim = ylim;
     ylim([Ylim(1),1.1*Ylim(2)])
     ylabel('y(t)');
     xlabel('t (\mus)');
-    title('Pulse y(t)');
     
-    leg = ["Er","Voltage"];
-    lgnd = legend(leg);
-    
-    set(lgnd,'Location','northwest');
-    
+    title1 = 'Pulse y(t)';
     str_Ttau = strcat("T = ",num2str(T*1e6)," us,"," \tau = ",num2str(tau*1e6)," us");
-    title(leg,str_Ttau);
+    title({str_Ttau,title1});
 
     %%%%%%%%%%%%%%%%%%
     % plot the amplitude spectrum with frequency Bands
@@ -257,14 +272,34 @@ end
     nexttile;
     hamColors = colormap(lines(length(transitions_kHz) + 1));
     
-    for ii = 1:length(transitions_kHz)
-        [fH,hammingWindow,~] = ...
-            getHammingWindow(f,transitions_kHz{ii});
-        renorm = max(P1) / max(hammingWindow);
-        area(fH/1e3,hammingWindow * renorm,...
-            'FaceColor',hamColors(ii+1,:),...
-            'EdgeColor','k');
-        hold on;
+    if ~options.BandRectangles
+        for ii = 1:length(transitions_kHz)
+            [fH,hammingWindow,~] = ...
+                getHammingWindow(f,transitions_kHz{ii});
+            renorm = max(P1) / max(hammingWindow);
+            area(fH/1e3,hammingWindow * renorm,...
+                'FaceColor',hamColors(ii+1,:),...
+                'EdgeColor','k');
+            hold on;
+        end
+    end
+    
+    plot(f/1e3,P1,'Color',hamColors(1,:),'LineWidth',options.LineWidth);
+    yy = ylim;
+    
+    hold off;
+    
+    if options.BandRectangles
+        for ii = 1:length(transitions_kHz)
+            thisBandColor = hamColors(ii+1,:);
+            rectangle( 'Position', ...
+                [transitions_kHz{ii}(1)/1e3, yy(1), ...
+                (transitions_kHz{ii}(2) - transitions_kHz{ii}(1))/1e3, ...
+                yy(2) - yy(1)],...
+                'FaceColor',thisBandColor,... %hamColors(ii+1)
+                'EdgeColor',[0 0 0]);
+            hold on;
+        end
     end
     
     plot(f/1e3,P1,'Color',hamColors(1,:));
@@ -276,19 +311,22 @@ end
     
     %%%%%%%%%%%%%%%%%%
     % plot a histogram of the power in each band transition
-    nexttile;
     
-    pgraph = bar(powerW);
-    
-    ylabel('Power (W)');
-    xlabel('Transition to N^{th} Excited Band');
-    title('Power Spectrum of y(t): Ground Band to Nth Excited')
-    
-    pgraph.FaceColor = 'flat';
-    for ii = 1:length(transitions_kHz)
-       pgraph.CData(ii,:) = hamColors(ii+1,:);
+    if ~options.SkipPowerPlot
+        nexttile;
+
+        pgraph = bar(powerW);
+
+        ylabel('Power (W)');
+        xlabel('Transition to N^{th} Excited Band');
+        title('Power Spectrum of y(t): Ground Band to Nth Excited')
+
+        pgraph.FaceColor = 'flat';
+        for ii = 1:length(transitions_kHz)
+           pgraph.CData(ii,:) = hamColors(ii+1,:);
+        end
+        ylim([0,options.ReferencePower]);
     end
-    ylim([0,options.ReferencePower]);
     
     %% Saving Things
     
@@ -358,7 +396,11 @@ end
     
     if options.SavePulseCSV
         
-        thismax = max(pulse_voltage);
+        if options.SquareRootWaveform
+           pulse_voltage_out = sqrt(pulse_voltage_out); 
+        end
+        
+        thismax = max(pulse_voltage_out);
         newmax = options.MaxCSVValue;
         
         pulse_voltage_out = pulse_voltage_out * (newmax / thismax);
