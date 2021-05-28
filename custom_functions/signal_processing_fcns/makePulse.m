@@ -1,4 +1,4 @@
-function [outputPulse, t] = makeFilteredPulse(T_us, tau_us, truncated_pulsewidth_us,options)
+function [outputPulse, t] = makePulse(T_us, tau_us, truncated_pulsewidth_us,options)
 
 arguments
     T_us = 250
