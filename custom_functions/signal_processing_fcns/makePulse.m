@@ -2,35 +2,35 @@ function [outputPulse, t] = makePulse(T_us, tau_us, truncated_pulsewidth_us,opti
 
 arguments
     T_us = 250
-    tau_us = 50
+    tau_us = 15
     truncated_pulsewidth_us = 100
 end
 arguments
+    options.UseGPU = 1 % use GPU for FFTs. Disable if low on memory or do not have NVIDIA GPU.
+    
     options.Fs = 1e7 % in Hz
+    options.NSamples = 31 %
+    options.PrimaryLatticeDepth = 10 % in 1064 lattice Ers.
     
-    options.PeriodsGraphed = 3
-    options.PlotBandRectangles = 1
+    options.FigurePosition = [2684, 431, 1059, 715] % where the figure is placed by default
     
-    options.SaveDirectory = "G:\My Drive\_WeldLab\Code\_Analysis\pulses\pulseoutput\pulse_out"
-    options.SkipFilePicker = 1
-    options.OpenSaveDirectory = 1
+    options.PeriodsGraphed = 3 % how many periods (T) of the pulse to plot.
+    options.PlotBandRectangles = 1 % boolean, whether or not to plot the bands as shaded rectangles
     
-    options.SaveFig = 1
-    options.SavePNG = 1
-    options.SaveMat = 1
+    options.SaveDirectory = "G:\My Drive\_WeldLab\Code\_Analysis\pulses\pulseoutput\pulse_out" % default save path
+    options.SkipFilePicker = 1 % if false, opens file picker for placing each saved file
+    options.OpenSaveDirectory = 1 % if true, opens save directory after saving on Windows machines.
     
-    options.SaveCSV = 1
-    options.SquareRootCSV = 1
-    options.MaxCSVValue = 2^(15) - 1
-    options.RemoveCSVZeroes = 1
+    options.SkipPulseChoiceDialog = 1 % if false, asks whether you want to save Gaussian, filtered gaussian, or truncated filtered gauss pulse.
     
-    options.FigurePosition = [2684, 431, 1059, 715]
+    options.SaveFig = 1 % toggles saving of fig file
+    options.SavePNG = 1 % only works if SaveFig = true. Toggles saving of PNG.
+    options.SaveMat = 1 % toggles saving of key workspace variables to mat file.
     
-    options.NSamples = 31;
-    
-    options.PrimaryLatticeDepth = 10
-    
-    options.UseGPU = 1;
+    options.SaveCSV = 1 % toggles saving of pulse CSV (for upload to keysight)
+    options.SquareRootCSV = 1 % toggles sqrt of pulse before saving to CSV
+    options.MaxCSVValue = 2^(15) - 1 % adjust maximum CSV value (for best keysight resolution)
+    options.RemoveCSVZeroes = 1 % trims zeros off the edges of the pulses.
 end
 
     %% Argument Handling
@@ -124,15 +124,15 @@ end
     
     %%%%% Pulse Plot %%%%%
     nexttile;
-    plot(Nt,Y_square,'Color',linecolors(1,:),'LineWidth',2);
+    plot(Nt*1e6,Y_square,'Color',linecolors(1,:),'LineWidth',2);
     hold on;
-    plot(Nt,Y_gauss,'Color',linecolors(2,:),'LineWidth',2);
-    plot(Nt,Y_filt,'Color',linecolors(3,:),'LineWidth',2);
-    plot(Nt,Y_truncated,'Color',linecolors(4,:),'LineWidth',2);
+    plot(Nt*1e6,Y_gauss,'Color',linecolors(2,:),'LineWidth',2);
+    plot(Nt*1e6,Y_filt,'Color',linecolors(3,:),'LineWidth',2);
+    plot(Nt*1e6,Y_truncated,'Color',linecolors(4,:),'LineWidth',2);
 
     ylabel("Pulse Amplitude");
     xlabel("Time (us)");
-    xlim( [-1,1]*(nT*T_us)/2 );
+    xlim( [-1,1]*(nT*T_us*1e6)/2 );
     ylim([0,1.05]);
     leg = legend(["Square Pulse", "Gaussian Pulse", "Filtered Gaussian, Zeroed", ...
         strcat("Filtered Gaussian, Truncated: ", num2str( truncated_pulsewidth_us ), " us" )]);
@@ -155,8 +155,8 @@ end
         for ii = 1:length(transitions)
             thisBandColor = rectColors(ii+1,:);
             rectangle( 'Position', ...
-                [transitions{ii}(1), yy(1), ...
-                (transitions{ii}(2) - transitions{ii}(1)), ...
+                [transitions{ii}(1)/1e3, yy(1), ...
+                (transitions{ii}(2) - transitions{ii}(1))/1e3, ...
                 yy(2) - yy(1)],...
                 'FaceColor',thisBandColor,...
                 'EdgeColor',[0 0 0]);
@@ -192,19 +192,24 @@ end
     ylabel("Power in Transition");
     xlabel("Transition from Ground Band (|g\rangle) to n^{th} Excited Band (|n\rangle)");   
     
-    %%
+    %% Select which pulse you want to output
     
-    % Select outputPulse
-    [choice, pulsetype] = choosePulse();
-        
-        switch choice
-            case 2
-                outputPulse = Y_gauss;
-            case 3
-                outputPulse = Y_filt;
-            case 4
-                outputPulse = Y_truncated;
-        end
+    if ~options.SkipPulseChoiceDialog
+        [choice, pulsetype] = choosePulse();
+
+            switch choice
+                case 2
+                    outputPulse = Y_gauss;
+                case 3
+                    outputPulse = Y_filt;
+                case 4
+                    outputPulse = Y_truncated;
+            end
+    else
+        disp('Dialog box skipped. Defaulting to Truncated Filtered Gaussian pulse. Choose a different option by setting option "SkipPulseChoiceDialog" to false.');
+        pulsetype = 'TruncatedFilteredGaussian';
+        outputPulse = Y_truncated;
+    end
         
     outputPulse = outputPulse(pulseIdx);
     
@@ -218,13 +223,20 @@ end
             "_samprate-",num2str(Fs,'%1.0e'),"Hz",...
             "_",pulsetype);
         
+    %%%%%%%%%%%%%%%%%%%%%%
+    
+    save_subfolder = fullfile(options.SaveDirectory, pulseName, filesep);
+    if ~isfolder(save_subfolder)
+        mkdir(save_subfolder);
+    end
+        
     %%%%%% save pulse mat %%%%%%
     if options.SaveMat
         if options.SkipFilePicker
-            savename = fullfile(options.SaveDirectory, strcat(pulseName,".mat") );
+            savename = fullfile(save_subfolder, strcat(pulseName,".mat") );
         else
             [fname, fpath] = ...
-           uiputfile( fullfile(options.SaveDirectory, strcat(pulseName,".mat") ), ...
+           uiputfile( fullfile(save_subfolder, strcat(pulseName,".mat") ), ...
             "Select .mat save location.");
             savename = fullfile(fpath,fname);
         end
@@ -239,10 +251,10 @@ end
     if options.SaveFig
         
         if options.SkipFilePicker
-            savename = fullfile(options.SaveDirectory, strcat(pulseName,".fig") );
+            savename = fullfile(save_subfolder, strcat(pulseName,".fig") );
         else
             [fname, fpath] = ...
-           uiputfile( fullfile(options.SaveDirectory, strcat(pulseName,".fig") ), ...
+           uiputfile( fullfile(save_subfolder, strcat(pulseName,".fig") ), ...
             "Select .fig save location.");
             savename = fullfile(fpath,fname);
         end
@@ -278,9 +290,9 @@ end
         end
         
         if options.SkipFilePicker
-            savename = fullfile(options.SaveDirectory, strcat(pulseName,".csv") );
+            savename = fullfile(save_subfolder, strcat(pulseName,".csv") );
         else
-            [fname, fpath] = uiputfile( fullfile(options.SaveDirectory, strcat(pulseName,".csv") ), ...
+            [fname, fpath] = uiputfile( fullfile(save_subfolder, strcat(pulseName,".csv") ), ...
             "Select CSV save location.");
             savename = fullfile(fpath,fname);
         end
@@ -293,7 +305,7 @@ end
     
     if ispc
         if options.OpenSaveDirectory
-            winopen(options.SaveDirectory);
+            winopen(save_subfolder);
         end
     end
     
