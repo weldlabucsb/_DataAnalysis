@@ -15,6 +15,7 @@ arguments
     options.FigurePosition = [2684, 431, 1059, 715] % where the figure is placed by default
     
     options.PeriodsGraphed = 3 % how many periods (T) of the pulse to plot.
+    options.PlotAmplitudes = 1 % toggle labeling the amplitudes of each pulse on the figure.
     options.PlotBandRectangles = 1 % boolean, whether or not to plot the bands as shaded rectangles
     
     options.SaveDirectory = "G:\My Drive\_WeldLab\Code\_Analysis\pulses\pulseoutput" % default save path
@@ -131,6 +132,26 @@ end
     plot(Nt*1e6,Y_gauss,'Color',linecolors(2,:),'LineWidth',2);
     plot(Nt*1e6,Y_filt,'Color',linecolors(3,:),'LineWidth',2);
     plot(Nt*1e6,Y_truncated,'Color',linecolors(4,:),'LineWidth',2);
+    
+    amplitudes.readme = "These are the amplitudes of each pulse which leave the area of each pulse the same.";
+    amplitudes.square = max(Y_square);
+    amplitudes.gaussian = max(Y_gauss);
+    amplitudes.filtered = max(Y_filt);
+    amplitudes.filtered_truncated = max(Y_truncated);
+    
+    if options.PlotAmplitudes
+        ampstring = [...
+            "Amplitudes:";
+            strcat("Square: ", num2str(amplitudes.square));
+            strcat("Gaussian: ", num2str(amplitudes.gaussian));
+            strcat("Filtered: ", num2str(amplitudes.filtered));
+            strcat("Filt, Trunc: ", num2str(amplitudes.filtered_truncated));];
+        annotation(...
+            'textbox',[0.1 0.85 0.1 0.1],...
+            'String',ampstring,...
+            'FitBoxToText',1,...
+            'BackgroundColor','w');
+    end
 
     title( strcat("T = ", num2str(T_us*1e6), ", \tau = ", num2str(tau_us*1e6), ", N = ", num2str(NSamples)) );
     ylabel("Pulse Amplitude");
@@ -247,7 +268,7 @@ end
         save( savename, ...
             'Y_square', 'Y_gauss', 'Y_filt', 'Y_truncated', ...
             'pulseIdx', 'T_us', 'tau_us', 'Fs', 'Nt', 't', 'f', ...
-            'transitions', 'powers');
+            'transitions', 'powers', 'amplitudes');
     end
     
     %%%%%% Saving Figure %%%%%%
