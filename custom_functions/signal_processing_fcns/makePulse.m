@@ -94,11 +94,13 @@ end
     % This is to avoid the distortion to the edge pulses due to finite
     % sample length.
     Y_filt = repmat( Y_filt_single, 1, NSamples);
+    Y_filt = renormalizeSameArea(Y_filt, Y_gauss);
     
     %% Truncate the pulse
     
     Y_single_truncated = truncatePulse( Y_filt_single, t, truncated_pulsewidth_us );
     Y_truncated = repmat( Y_single_truncated, 1, NSamples );
+    Y_truncated = renormalizeSameArea(Y_truncated, Y_gauss);
     
     %% Analyze Each Pulse
     
@@ -429,4 +431,10 @@ function [choice, answer] = choosePulse()
     end
     
     answer = strrep(answer,' ',"");
+end
+
+function renormed_func = renormalizeSameArea(function_in, reference_function)
+    ref_area = trapz(reference_function);
+    in_area = trapz(function_in);
+    renormed_func = function_in * (ref_area/in_area);
 end
