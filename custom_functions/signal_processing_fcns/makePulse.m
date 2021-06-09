@@ -22,7 +22,7 @@ arguments
     options.SkipFilePicker = 1 % if false, opens file picker for placing each saved file
     options.OpenSaveDirectory = 0 % if true, opens save directory after saving on Windows machines.
     
-    options.SkipPulseChoiceDialog = 1 % if false, asks whether you want to save Gaussian, filtered gaussian, or truncated filtered gauss pulse.
+    options.SkipPulseChoiceDialog = 0 % if false, asks whether you want to save Gaussian, filtered gaussian, or truncated filtered gauss pulse.
     
     options.SaveFig = 1 % toggles saving of fig file
     options.SavePNG = 1 % only works if SaveFig = true. Toggles saving of PNG.
@@ -143,9 +143,9 @@ end
         ampstring = [...
             "Amplitudes:";
             strcat("Square: ", num2str(amplitudes.square));
-            strcat("Gaussian: ", num2str(amplitudes.gaussian));
-            strcat("Filtered: ", num2str(amplitudes.filtered));
-            strcat("Filt, Trunc: ", num2str(amplitudes.filtered_truncated));];
+            strcat("Gaussian: (", num2str(sqrt(amplitudes.gaussian)),")^2");
+            strcat("Filtered: (", num2str(sqrt(amplitudes.filtered)),")^2");
+            strcat("Filt, Trunc: (", num2str(sqrt(amplitudes.filtered_truncated)),")^2")];
         annotation(...
             'textbox',[0.1 0.85 0.1 0.1],...
             'String',ampstring,...
@@ -224,14 +224,18 @@ end
             switch choice
                 case 2
                     outputPulse = Y_gauss;
+                    thisamp = amplitudes.gaussian;
                 case 3
                     outputPulse = Y_filt;
+                    thisamp = amplitudes.filtered;
                 case 4
                     outputPulse = Y_truncated;
+                    thisamp = amplitudes.filtered_truncated;
             end
     else
         disp('Dialog box skipped. Defaulting to Truncated Filtered Gaussian pulse. Choose a different option by setting option "SkipPulseChoiceDialog" to false.');
-        pulsetype = 'TruncatedFilteredGaussian';
+        pulsetype = 'TruncFiltGaussian';
+        thisamp = amplitudes.filtered_truncated;
         outputPulse = Y_truncated;
     end
         
@@ -241,11 +245,19 @@ end
     
     %%%%%%%%%%%%%%%%%%%%%%
     
-    pulseName = strcat("pulse_",...
-            "T-",num2str(T_us*1e6),...
-            "_tau-",num2str(tau_us*1e6),...
-            "_samprate-",num2str(Fs,'%1.0e'),"Hz",...
-            "_",pulsetype);
+%     pulseName = strcat("pulse_",...
+%             "T-",num2str(T_us*1e6),...
+%             "_tau-",num2str(tau_us*1e6),...
+%             "_samprate-",num2str(Fs,'%1.0e'),"Hz",...
+%             "_",pulsetype,...
+%             "_sqrtAmplitude-",num2str(sqrt(thisamp)));
+        
+    pulseName = strcat(pulsetype,...
+        "_sqrtAmplitude-",num2str(sqrt(thisamp)),...
+        "_T-",num2str(T_us*1e6),...
+        "_tau-",num2str(tau_us*1e6),...
+        "_samprate-",num2str(Fs,'%1.0e'),"Hz");
+        
         
     %%%%%%%%%%%%%%%%%%%%%%
     
