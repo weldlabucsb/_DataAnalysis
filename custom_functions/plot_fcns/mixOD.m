@@ -15,12 +15,21 @@ arguments
     options.WidthCropOD = 25; % remove this much from either side (horizontally) of the OD
     options.HeightCropOD = 150; % removes this much from either side (vertically) of the OD
     options.ShiftYPixels = 20;
+    options.ShiftXPixels = 10;
     options.WrapPlot = 1 % toggles dressing up the plot all nice
     options.FigureHandle = [] % optionally, specify an existing figure handle
     options.Interpreter = 'latex'
+    options.PlotEvery = 1
 end
 
     [avgOD, var_vars] = avgRepeats(RunData,RunVars.varied_var,{'OD'});
+    
+    for ii = 1:length(avgOD)
+       idx(ii) = ~mod(ii-1,options.PlotEvery);
+    end
+    
+    avgOD = avgOD(idx);
+    var_vars = var_vars(idx);
     
     w = size([avgOD(1).OD],2);
     h = size([avgOD(1).OD],1);
@@ -32,7 +41,7 @@ end
     
     leftside = options.WidthCropOD;
     rightside = w - options.WidthCropOD;
-    wCropped = rightside - leftside;
+    wCropped = rightside - leftside + 1;
     ODx_range = leftside:rightside;
     
     topside = options.HeightCropOD;
@@ -41,7 +50,7 @@ end
     ODy_range = topside:botside + options.ShiftYPixels;
     
     for ii = 1:N
-       x_tick_positions(ii) = 1 + wCropped/2 + wCropped * (ii - 1);
+       x_tick_positions(ii) = 1 + (wCropped)/2 + (wCropped) * (ii - 1) ;
        x_tick_label{ii} = num2str(var_vars(ii));
        
        thisOD = [avgOD(ii).OD];
