@@ -15,13 +15,14 @@ arguments
     options.FigurePosition = [2684, 431, 1059, 715] % where the figure is placed by default
     
     options.PeriodsGraphed = 3 % how many periods (T) of the pulse to plot.
+    options.PlotAmplitudes = 1 % toggle labeling the amplitudes of each pulse on the figure.
     options.PlotBandRectangles = 1 % boolean, whether or not to plot the bands as shaded rectangles
     
     options.SaveDirectory = "G:\My Drive\_WeldLab\Code\_Analysis\pulses\pulseoutput" % default save path
     options.SkipFilePicker = 1 % if false, opens file picker for placing each saved file
     options.OpenSaveDirectory = 0 % if true, opens save directory after saving on Windows machines.
     
-    options.SkipPulseChoiceDialog = 1 % if false, asks whether you want to save Gaussian, filtered gaussian, or truncated filtered gauss pulse.
+    options.SkipPulseChoiceDialog = 0 % if false, asks whether you want to save Gaussian, filtered gaussian, or truncated filtered gauss pulse.
     
     options.SaveFig = 1 % toggles saving of fig file
     options.SavePNG = 1 % only works if SaveFig = true. Toggles saving of PNG.
@@ -94,11 +95,13 @@ end
     % This is to avoid the distortion to the edge pulses due to finite
     % sample length.
     Y_filt = repmat( Y_filt_single, 1, NSamples);
+    Y_filt = renormalizeSameArea(Y_filt, Y_gauss);
     
     %% Truncate the pulse
     
     Y_single_truncated = truncatePulse( Y_filt_single, t, truncated_pulsewidth_us );
     Y_truncated = repmat( Y_single_truncated, 1, NSamples );
+    Y_truncated = renormalizeSameArea(Y_truncated, Y_gauss);
     
     %% Analyze Each Pulse
     
@@ -129,6 +132,26 @@ end
     plot(Nt*1e6,Y_gauss,'Color',linecolors(2,:),'LineWidth',2);
     plot(Nt*1e6,Y_filt,'Color',linecolors(3,:),'LineWidth',2);
     plot(Nt*1e6,Y_truncated,'Color',linecolors(4,:),'LineWidth',2);
+    
+    amplitudes.readme = "These are the amplitudes of each pulse which leave the area of each pulse the same.";
+    amplitudes.square = max(Y_square);
+    amplitudes.gaussian = max(Y_gauss);
+    amplitudes.filtered = max(Y_filt);
+    amplitudes.filtered_truncated = max(Y_truncated);
+    
+    if options.PlotAmplitudes
+        ampstring = [...
+            "Amplitudes:";
+            strcat("Square: ", num2str(amplitudes.square));
+            strcat("Gaussian: (", num2str(sqrt(amplitudes.gaussian)),")^2");
+            strcat("Filtered: (", num2str(sqrt(amplitudes.filtered)),")^2");
+            strcat("Filt, Trunc: (", num2str(sqrt(amplitudes.filtered_truncated)),")^2")];
+        annotation(...
+            'textbox',[0.1 0.85 0.1 0.1],...
+            'String',ampstring,...
+            'FitBoxToText',1,...
+            'BackgroundColor','w');
+    end
 
     title( strcat("T = ", num2str(T_us*1e6), ", \tau = ", num2str(tau_us*1e6), ", N = ", num2str(NSamples)) );
     ylabel("Pulse Amplitude");
@@ -201,14 +224,18 @@ end
             switch choice
                 case 2
                     outputPulse = Y_gauss;
+                    thisamp = amplitudes.gaussian;
                 case 3
                     outputPulse = Y_filt;
+                    thisamp = amplitudes.filtered;
                 case 4
                     outputPulse = Y_truncated;
+                    thisamp = amplitudes.filtered_truncated;
             end
     else
         disp('Dialog box skipped. Defaulting to Truncated Filtered Gaussian pulse. Choose a different option by setting option "SkipPulseChoiceDialog" to false.');
-        pulsetype = 'TruncatedFilteredGaussian';
+        pulsetype = 'TruncFiltGaussian';
+        thisamp = amplitudes.filtered_truncated;
         outputPulse = Y_truncated;
     end
         
@@ -218,11 +245,19 @@ end
     
     %%%%%%%%%%%%%%%%%%%%%%
     
-    pulseName = strcat("pulse_",...
-            "T-",num2str(T_us*1e6),...
-            "_tau-",num2str(tau_us*1e6),...
-            "_samprate-",num2str(Fs,'%1.0e'),"Hz",...
-            "_",pulsetype);
+%     pulseName = strcat("pulse_",...
+%             "T-",num2str(T_us*1e6),...
+%             "_tau-",num2str(tau_us*1e6),...
+%             "_samprate-",num2str(Fs,'%1.0e'),"Hz",...
+%             "_",pulsetype,...
+%             "_sqrtAmplitude-",num2str(sqrt(thisamp)));
+        
+    pulseName = strcat(pulsetype,...
+        "_sqrtAmplitude-",num2str(sqrt(thisamp)),...
+        "_T-",num2str(T_us*1e6),...
+        "_tau-",num2str(tau_us*1e6),...
+        "_samprate-",num2str(Fs,'%1.0e'),"Hz");
+        
         
     %%%%%%%%%%%%%%%%%%%%%%
     
@@ -245,7 +280,7 @@ end
         save( savename, ...
             'Y_square', 'Y_gauss', 'Y_filt', 'Y_truncated', ...
             'pulseIdx', 'T_us', 'tau_us', 'Fs', 'Nt', 't', 'f', ...
-            'transitions', 'powers');
+            'transitions', 'powers', 'amplitudes');
     end
     
     %%%%%% Saving Figure %%%%%%
@@ -429,4 +464,10 @@ function [choice, answer] = choosePulse()
     end
     
     answer = strrep(answer,' ',"");
+end
+
+function renormed_func = renormalizeSameArea(function_in, reference_function)
+    ref_area = trapz(reference_function);
+    in_area = trapz(function_in);
+    renormed_func = function_in * (ref_area/in_area);
 end
