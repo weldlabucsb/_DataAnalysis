@@ -205,7 +205,7 @@ varargin = {RunVars.heldvars_all};
 %     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
     pColorCenteredNonGrid(gca,lambdas,Ts,Widthsvec,1E-6,1E-6);
     
-%     zlim([0 5E-5]);
+    zlim([0 5E-5]);
     hold on;
     plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
     hold off;
@@ -239,29 +239,6 @@ varargin = {RunVars.heldvars_all};
     ylabel('T''');
     xlabel('Lambda');
     
-    
-        eigh_fig = figure(8);
-    %loaded with Esat colormap
-    JetWhite = getJetWhite();
-    colormap(JetWhite);
-%     axis off;
-
-%     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
-%     zlim([0 5E-5]);
-    pColorCenteredNonGrid(gca,lambdas,Ts,Widthsvec,1E-6,1E-6);
-    caxis([0 5].*1E-5);
-% caxis([0 1E-5]);
-
-    hold on;
-    plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
-    hold off;
-%     xlim([0 0.03]);
-        
-    title('cloudSD_y');
-%     title(['width at ' num2str(frac) ' maximum (summedODy, au)']);
-    colorbar;
-    ylabel('T''');
-    xlabel('Lambda');
     
     options.yLabel = figure_title_dependent_var;
     options.xLabel = '915 Depth [$E_R$]';

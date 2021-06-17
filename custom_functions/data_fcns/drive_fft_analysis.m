@@ -9,7 +9,7 @@ end
 %fourier power I think. For the decay rate plots we care about versus time
 %not versus kick number so I think that constant lattHold makes sense. The
 %first good fourier comparison plot that was sent out used the following:'
-lattHold = 1E-3; %sec
+lattHold = 1E-1; %sec
 % lattHold = T*100; %sec
 
 sampPer = round(25*(T/4E-6)); %how many samples per period

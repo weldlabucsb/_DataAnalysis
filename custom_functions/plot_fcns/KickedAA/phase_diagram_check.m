@@ -1,14 +1,9 @@
-function [fig_handle, fig_filename] = gaussianPhaseDiagram(RunDatas,RunVars,options)
+function [fig_handle, fig_filename] = phase_diagram_check(RunDatas,RunVars,options)
 % PLOTFUNCTIONTEMPLATE makes a plot from the given RunDatas against the
 % dependent variable {varied_variable_name}. Optional arguments are passed
 % to setupPlot, which automatically puts axes and a legend on the plot,
 % resizes the axes, etc.
 % 
-
-
-%%%%%Note %%%%%%%%%%
-%unlike the rest of the functions I made this one work so that just RunVars
-%is an input to avoid having to do unpackRunVars
 
 
 
@@ -52,7 +47,7 @@ varargin = {RunVars.heldvars_all};
     % individually, so I looped over the RunDatas and repeat-averaged each
     % one.
     
-    vars_to_be_averaged = {'summedODy','RawMaxPeak3Density','cloudSD_y','atomNumber'};
+    vars_to_be_averaged = {'summedODy','RawMaxPeak3Density','cloudSD_y','atomNumber','cloudCenter_y','cloudCenter_x'};
     for j = 1:length(RunDatas)
         [avg_atomdata{j}, varied_var_values{j}] = avgRepeats(...
             RunDatas{j}, varied_variable_name, vars_to_be_averaged);
@@ -62,12 +57,11 @@ varargin = {RunVars.heldvars_all};
     first_fig = figure(1);
     cmap = colormap( jet( length(RunDatas) ) );
 
-    
     %%import the relevant KD parameters
     [V0s,vvas,secondaryErPerVolt] = KDimport();
     secondaryPDGain = 1; 
     
-   
+    
     cutoff = 0.1;
     frac = 0.75;
     lambdas = zeros(0);
@@ -75,6 +69,9 @@ varargin = {RunVars.heldvars_all};
     IPRvec = zeros(0);
     fracWidthsvec = zeros(0);
     Widthsvec = zeros(0);
+    atomNumsVec = zeros(0);
+    xCenterVec = zeros(0);
+    yCenterVec = zeros(0);
     for j = 1:length(RunDatas)
         
         % Here I compute each fracWidth from the repeat-averaged densities
@@ -93,25 +90,6 @@ varargin = {RunVars.heldvars_all};
             s1 = atomdata(ii).vars.(PrimaryLatticeDepthVar);
             
             
-%             if(isfield(atomdata(ii).vars,'ErPerVolt915'))
-% %                 disp('ErPerVolt915 Exists!')
-%                 secondaryErPerVolt = atomdata(ii).vars.ErPerVolt915;  % Calibration from KD for the secondary lattice 
-%             else
-% %                 disp('ErPerVolt915 Doesn''t exist')
-%                 %got from KD on 1/5
-%                 secondaryErPerVolt = 22.34;
-%             end
-
-
-            
-%             secondaryErPerVolt = 22.313; %for 1/16 Data
-%             secondaryErPerVolt = 12.54; %for 2/27 Data
-            
-            %for 6/8 Data
-            secondaryErPerVolt = 13.60;
-            
-            
-            secondaryPDGain = 1; 
 
             maxs2 = vva_to_voltage(V0s,vvas,atomdata(ii).vars.Lattice915VVA)*secondaryErPerVolt/secondaryPDGain;
             la1 = 1064;
@@ -156,6 +134,11 @@ varargin = {RunVars.heldvars_all};
             fracWidths{j}(ii) = width;
             Widths{j}(ii) = avg_atomdata{j}(ii).cloudSD_y;
             
+            atomNums{j}(ii) = avg_atomdata{j}(ii).atomNumber;
+            
+            xCenterPos{j}(ii) = avg_atomdata{j}(ii).cloudCenter_x;
+            yCenterPos{j}(ii) = avg_atomdata{j}(ii).cloudCenter_y;
+            
             if (Widths{j}(ii)  > 6E-5)
                 Widths{j}(ii) = NaN;
             end
@@ -184,24 +167,24 @@ varargin = {RunVars.heldvars_all};
         
         fracWidths{j} = smoothdata(fracWidths{j},'movmean',2);
         fracWidthsvec = [fracWidthsvec fracWidths{j}];
+        
+        atomNumsVec = [atomNumsVec atomNums{j}];
+        
+        xCenterVec = [xCenterVec xCenterPos{j}];
+        
+        yCenterVec = [yCenterVec yCenterPos{j}];
+        
     end
     %%% End Data Manipulation %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Then plot things, just looping over the values I computed above.
+    figure(1);
+    subplot(2,2,1);
+    wupperlim = 2E-4;
+    wlowerlim = 0;
+    Widthsvec(or(Widthsvec>wupperlim,Widthsvec<wlowerlim)) = NaN;
     
-    figure_title_dependent_var = ['width at ' num2str(frac) ' maximum (summedODy, au)'];
-%     figure_title_dependent_var = ['cloudSD_y'];
-    for j = 1:length(RunDatas)
-        plot( Depths915{j}, fracWidths{j}, 'o-',...
-            'LineWidth', options.LineWidth,...
-            'Color',cmap(j,:));
-%         set(gca,'yscale','log');
-        hold on;
-    end
-    hold off;
-    
-        sec_fig = figure(2);
     scatter3(lambdas,Ts,Widthsvec);
     xlabel('Lambda');
     ylabel('T''');
@@ -212,62 +195,46 @@ varargin = {RunVars.heldvars_all};
     hold off;
 %     xlim([0,2*max(Ts)]);
 %     ylim([0,max(Ts)]);
-    
-    sixth_fig = figure(6);
-%     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
-    pColorCenteredNonGrid(gca,lambdas,Ts,Widthsvec,1E-6,1E-6);
-    
-%     colormap('parula');
-    hold on;
-    plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
-    hold off;
-%     xlim([0 0.02]);
-        xlabel('Lambda');
-    ylabel('T''');
-    title('cloudSD_y');
-%     title(['width at ' num2str(frac) ' maximum (summedODy, au)']);
-    colorbar;
-%     caxis([0 5]*1E-5);
-    %try different colormap 
-            sev_fig = figure(7);
-    mycolormap = customcolormap(linspace(0,1,11), {'#68011d','#b5172f','#d75f4e','#f7a580','#fedbc9','#f5f9f3','#d5e2f0','#93c5dc','#4295c1','#2265ad','#062e61'});
-    colormap(mycolormap);
-    if(0)
-        colormap(getEditedUSA());
-    end
-%     JetWhite = getJetWhite();
-%     colormap(JetWhite);
-%     axis off;
 
-%     pColorCenteredGrid(gca,lambdas,Ts,fracWidthsvec);
-%     zlim([0 5E-5]);
-    pColorCenteredNonGrid(gca,lambdas,Ts,Widthsvec,1E-6,1E-6);
-%     caxis([0 5].*1E-5);
-% caxis([0 1E-5]);
-
-    hold on;
-    plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
-    hold off;
-%     xlim([0 0.03]);
-        
-    title('cloudSD_y');
-%     title(['width at ' num2str(frac) ' maximum (summedODy, au)']);
-    colorbar;
-    ylabel('T''');
+    subplot(2,2,2);
+    scatter3(lambdas,Ts,atomNumsVec);
     xlabel('Lambda');
-   
+    ylabel('T''');
+    title('AtomNumber');
+    hold on;
+    plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
+    hold off;
     
-    options.yLabel = figure_title_dependent_var;
-    options.xLabel = '915 Depth [$E_R$]';
-    [plot_title, fig_filename] = ...
-        setupPlotWrap( ...
-            first_fig, ...
-            options, ...
-            RunDatas, ...
-            figure_title_dependent_var, ...
-            varied_variable_name, ...
-            legendvars, ...
-            varargin);
+    subplot(2,2,3);
+    xupperlim = 8E-4;
+    xlowerlim = 6E-4;
+    xCenterVec(or(xCenterVec>xupperlim,xCenterVec<xlowerlim)) = NaN;
+    scatter3(lambdas,Ts,xCenterVec);
+    xlabel('Lambda');
+    ylabel('T''');
+    title('Cloud Center X');
+%     hold on;
+%     plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
+%     hold off;
+    
+
+    subplot(2,2,4);
+    yupperlim = 6.75E-4;
+    ylowerlim = 6.6E-4;
+    yCenterVec(or(yCenterVec>yupperlim,yCenterVec<ylowerlim)) = NaN;
+    scatter3(lambdas,Ts,yCenterVec);
+    xlabel('Lambda');
+    ylabel('T''');
+    title('Cloud Center Y');
+%     hold on;
+%     plot(linspace(0,2*max(Ts),30),0.5*linspace(0,2*max(Ts),30),'r-','linewidth',2);
+%     hold off;
+    
+    
+    
+    
+    
+    
         
     function depth = vva_to_voltage(V0s,vvas,vva)
 
