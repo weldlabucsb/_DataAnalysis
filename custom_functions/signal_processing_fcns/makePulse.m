@@ -40,7 +40,7 @@ end
     tau_us = tau_us * 1e-6;
     
     if ~mod(options.NSamples,2)
-       options.NSamples = options.NSamples + 1;
+       warning('The specified sample number is not an odd number. Adding one more sample...');       options.NSamples = options.NSamples + 1;
     end
 
     nT = options.PeriodsGraphed; % number of periods to graph
