@@ -82,20 +82,24 @@ end
     % make a gaussian pulse
     Y_gauss = gaussian_pulse(T_us,tau_us,Fs,t,NSamples);
     
-    % filter the gaussian pulse
-    Y_filt = multiBandStop(Y_gauss,transitions,Fs);
-    
-    % zero out the negative parts of the filtered pulse
-    Y_filt(Y_filt < 0) = 0;
-    
-    % Grab a single pulse from the filtered pulse train
-    Y_filt_single = Y_filt( pulseIdx );
-    
-    % Rebuild the filtered pulse train from the central pulse
-    % This is to avoid the distortion to the edge pulses due to finite
-    % sample length.
-    Y_filt = repmat( Y_filt_single, 1, NSamples);
-    Y_filt = renormalizeSameArea(Y_filt, Y_gauss);
+    if ~options.SkipFiltering
+        % filter the gaussian pulse
+        Y_filt = multiBandStop(Y_gauss,transitions,Fs);
+
+        % zero out the negative parts of the filtered pulse
+        Y_filt(Y_filt < 0) = 0;
+
+        % Grab a single pulse from the filtered pulse train
+        Y_filt_single = Y_filt( pulseIdx );
+
+        % Rebuild the filtered pulse train from the central pulse
+        % This is to avoid the distortion to the edge pulses due to finite
+        % sample length.
+        Y_filt = repmat( Y_filt_single, 1, NSamples);
+        Y_filt = renormalizeSameArea(Y_filt, Y_gauss);
+    else
+        Y_filt = Y_gauss;
+    end
     
     %% Truncate the pulse
     
