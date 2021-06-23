@@ -58,9 +58,17 @@ Clicking the "Step 6" button will put the RunVars variable into your workspace. 
     ans = "Runs 6.10 - 10 23, 6.11 - 23 14, 6.15 - 14"
     ```
 
-- __plotTitle__: takes in a RunData object or a cell array of RunData objects, and outputs a multi-line plotTitle. First line specifies the dependent variable being plotted and the varied variable (a cicero variable). Varargs (cell array of cicero variable names (strings)) optionally adds a line of cicero variables that were held constant and their values. Next line specifies the dates and run numbers that were present in the provided RunData(s). Function outputs title as a cell array of strings which can be passed to title().
+- __plotTitle__: takes in a RunData object or a cell array of RunData objects, and outputs a multi-line plotTitle. First line specifies the dependent variable being plotted (any string) and the varied variable (a cicero variable). Varargs (cell array of cicero variable names (strings)) optionally adds a line of cicero variables that were held constant and their values. Next line specifies the dates and run numbers that were present in the provided RunData(s). Function outputs title as a cell array of strings which can be passed to title().
     ```matlab
-    plot_title = plotTitle(RunDatas,varied_variable_name,varargin)
+    plot_title = plotTitle(RunDatas,plotted_dependent_variable,varied_variable_name,varargin)
+    ```
+    Example:
+    ```matlab
+    >> plotTitle(RunDatas,'Cloud Width','LatticeHold',{'T','tau','Lattice915VVA'})
+    ans = 
+    {["Cloud Width vs LatticeHold"          ]}
+    {["T - 250, tau - 15, Lattice915VVA - 3"]}
+    {["Runs 6.21 - 12 13 14"                ]}
     ```
 
 - __filenameFromPlotTitle__: takes in cell array (of strings) output from plotTitle and outputs a .png filename which can be used to save the figure.
