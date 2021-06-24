@@ -1,4 +1,4 @@
-function good_fit_tags = flagBadFits(RunDatas,varied_var,options)
+function [good_fit_tags, avgRDs] = flagBadFits(RunDatas,varied_var,options)
 % FLAGBADODYFITS returns a cell array, with each cell corresponding to one
 % run in the provided RunDatas. The cell contains a string of booleans,
 % where 1 corresponds to a good fit and 0 corresponds to a bad fit. The
@@ -24,7 +24,9 @@ arguments
     
     options.RefitFunction = 'dualGaussManualFit' % mat file name of fit fcn
     
-    options.xConvert = 2; % set to scale independent variable for fitted data
+    options.xConvert = 2 % set to scale independent variable for fitted data
+    
+    options.SkipRefitting = 0
 end
 
 %% Definitions
@@ -61,7 +63,7 @@ N = length(RunDatas);
 
 % here in case I break something with this
 % fns = {'summedODy','(fit_object_varname)','OD','cloudSD_y'};
-fns = {fitted_data_varname,fit_object_varname};
+fns = {fitted_data_varname,fit_object_varname,fit_param_varname};
 
 
 N_to_check = 0; %init
@@ -102,17 +104,27 @@ for ii = 1:N
         
         [good_fit_tags{ii}(j), give_up] = yes_no_choice();
         
-        give_up = 0; % never give up (except when they hit cancel)
-        while ~give_up
-            
-            tempRD = avgRDs{ii}(j);
-            
-            refitted_vec = refit(avgRDs{ii}(j),fitted_data_varname,...
-                fit_object_varname,xvector{ii}{j},options);
-            
-             [good_fit_tags{ii}(j), give_up] = yes_no_choice();
-             
-            plotFit(avgRDs{ii}(j),this_run_plottitle,options,ii,j)
+        if ~options.SkipRefitting
+            give_up = 0; % never give up (except when they hit cancel)
+            while ~give_up
+
+                tempRD = avgRDs{ii}(j);
+
+                [refit_vector,refit_param] = refit(avgRDs{ii}(j),fitted_data_varname,...
+                    fit_object_varname,xvector{ii}{j},options);
+
+                tempRD.(fit_object_varname) = refit_vector;
+                tempRD.(fit_param_varname) = refit_param;
+
+                [good_fit_tags{ii}(j), give_up] = yes_no_choice();
+
+                plotFit(tempRD,this_run_plottitle,options,ii,j)
+
+                if good_fit_tags{ii}(j)
+                    avgRDs{ii}(j) = tempRD;
+                end
+
+            end
         end
         
     end
@@ -147,12 +159,13 @@ function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options,i
         this_run_plottitle(1) = [];
         this_run_plottitle{end+1} = strcat("Run ",num2str(ii),"/",num2str(N),...
             ", Curve ",num2str(j),"/",num2str(Ncurves));
-        this_run_plottitle{end+1} = strcat("Fit ",fit_param_varname,": ",...
-            num2str(this_avgRD.( fit_param_varname )) );
+        this_run_plottitle{end+1} = strcat(...
+            "Fit ",options.FitParameterVarname,": ",...
+            num2str(this_avgRD.( options.FitParameterVarname )) );
         title(this_run_plottitle);
         
         % other plot stuff
-        ylabel("Data: ",fitted_data_varname);
+        ylabel(strcat("Data: ",fitted_data_varname));
         legend(["Data","Fit"]);
         set(fig_handle,'Position',options.Position);
         
@@ -190,7 +203,7 @@ function [choice, give_up] = yes_no_choice()
 end
 
 % function updated_fit_vector = refit(this_avgRD,fitted_data_varname,fit_object_varname,xvector)
-function updated_fit_vector = refit(this_avgRD,fitted_data_varname,xvector,options)
+function [refit_vector, refit_param]  = refit(this_avgRD,fitted_data_varname,xvector,options)
     ydata = this_avgRD.(fitted_data_varname);
     xdata = xvector;
     
@@ -199,6 +212,7 @@ function updated_fit_vector = refit(this_avgRD,fitted_data_varname,xvector,optio
             [Y, Y1, Y2, roiRect] = dualGaussManualFit(xdata,ydata,...
                 'PlotFit',0);
             updated_fit_vector = Y;
+            refit_param = Y1.sigma1;
     end
     
 end
