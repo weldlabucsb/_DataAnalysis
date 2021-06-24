@@ -17,15 +17,14 @@ arguments
     
     options.RunVars = struct()
     options.HeldVars = {'T','tau'}
+    
+    options.FittedDataVarname = 'summedODy'
+    options.FitObjectVarname = 'fitData_y'
 end
 
 if class(RunDatas) ~= "cell" && length(RunDatas) == 1
    RunDatas = {RunDatas}; 
 end
-
-N = length(RunDatas);
-
-heldvars = {'T','tau'};
 
 if options.RunVars ~= []
     % by default uses heldvars_each
@@ -39,10 +38,12 @@ else
     heldvars = options.HeldVars;
 end
 
-fitted_data_varname = 'summedODy';
-fit_object_varname = 'fitData_y'; % here actually just a fit evaluated on same axis
+fitted_data_varname = options.FittedDataVarname;
+fit_object_varname = options.FitObjectVarname; % here actually just a fit evaluated on same axis
 
-fns = {'summedODy','fitData_y','OD','cloudSD_y'};
+N = length(RunDatas);
+
+% fns = {'summedODy','fitData_y','OD','cloudSD_y'};
 fns = {fitted_data_varname,fit_object_varname};
 
 xconvert_to_um = 2;
