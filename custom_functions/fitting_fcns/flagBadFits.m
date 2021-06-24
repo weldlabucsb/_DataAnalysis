@@ -96,7 +96,7 @@ for ii = 1:N
         %% Set Up the Plots
         
         [xvector{ii}{j}, fig_handle] = ...
-            plotFit(avgRDs{ii}(j),this_run_plottitle,options,ii,j,N);
+            plotFit(avgRDs{ii}(j),this_run_plottitle,options,ii,j,N,Ncurves);
         
         %% Ask about fit
         
@@ -121,7 +121,7 @@ end
 
 end
 
-function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options,ii,j,N)
+function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options,ii,j,N,Ncurves)
     
         fitted_data_varname = options.FittedDataVarname;
         fit_object_varname = options.FitObjectVarname;
