@@ -35,7 +35,7 @@ You can also select variables which were held constant within each run (heldvars
 - Again, variables can be specified manually below each table. For the heldvars tables, you can check values __and__ specify manual variables. All of them will be included in the RunVars struct.
 - Multiple manual variables can be specified as comma-delimited variable names. Spaces are fine.
 
-Clicking the "Step 6" button will put the RunVars variable into your workspace. I've included a function called __unpackRunDatas__ that can be used to split this into the variables used by the plotFunctions. See below for details.
+Clicking the "Step 6" button will put the RunVars variable into your workspace. I've included a function called __unpackRunVars__ that can be used to split this into the variables used by the plotFunctions. See below for details.
 - If you include selectRuns in line with your script, be sure to put a pause afterward so that you can take your time selecting data before continuing.
 - One can also just leave selectRuns open on their computer, reselecting data and re-running plotFunctions in real time to analyze different subsets of data.
 
