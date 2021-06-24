@@ -111,19 +111,36 @@ for ii = 1:N
             while ~give_up
 
                 tempRD = avgRDs{ii}(j);
+                
+                try
+                    
+                    [refit_vector,refit_param] = refit(avgRDs{ii}(j),...
+                        fitted_data_varname,xvector{ii}{j},options);
+                    
+                    tempRD.(fit_object_varname) = refit_vector;
+                    tempRD.(fit_param_varname) = refit_param;
 
-                [refit_vector,refit_param] = refit(avgRDs{ii}(j),...
-                    fitted_data_varname,xvector{ii}{j},options);
+                    plotFit(tempRD,this_run_plottitle,options,ii,j,N,Ncurves);
 
-                tempRD.(fit_object_varname) = refit_vector;
-                tempRD.(fit_param_varname) = refit_param;
-                
-                plotFit(tempRD,this_run_plottitle,options,ii,j,N,Ncurves)
-                
-                [good_fit_tags{ii}(j), give_up] = yes_no_choice();
-                
-                if good_fit_tags{ii}(j)
-                    avgRDs{ii}(j) = tempRD;
+                    [good_fit_tags{ii}(j), give_up] = yes_no_choice();
+
+                    if good_fit_tags{ii}(j)
+                        avgRDs{ii}(j) = tempRD;
+                    end
+                    
+                catch ME
+                    switch ME.identifier
+                        case 'curvefit:fit:nanComputed'
+                            warning('NaN computed by fit. Try grabbing a different domain/range.');
+                             give_up = 0;
+                        case 'MATLAB:badsubscript'
+                            warning('Looks like you might not have selected any points -- some vector is empty!')
+                             give_up = 0;
+                        case 'MATLAB:class:InvalidHandle'
+                            warning('Refit figure closed. Verify how to proceed.')
+                            [good_fit_tags{ii}(j), give_up] = yes_no_choice();
+                    end
+                   
                 end
 
             end
