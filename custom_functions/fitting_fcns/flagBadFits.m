@@ -1,4 +1,4 @@
-function [good_fit_tags, avgRDs] = flagBadFits(RunDatas,varied_var,options)
+function output = flagBadFits(RunDatas,varied_var,options)
 % FLAGBADODYFITS returns a cell array, with each cell corresponding to one
 % run in the provided RunDatas. The cell contains a string of booleans,
 % where 1 corresponds to a good fit and 0 corresponds to a bad fit. The
@@ -161,6 +161,9 @@ for ii = 1:N
         
     end
 end
+
+output.good_fit_tags = good_fit_tags ;
+output.avgRDs = avgRDs;
 
 end
 
