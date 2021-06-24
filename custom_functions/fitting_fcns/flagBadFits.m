@@ -22,7 +22,7 @@ arguments
     options.FitObjectVarname = 'fitData_y'
     options.FitParameterVarname = 'cloudSD_y' % if there is an extracted value from the fit, display it here
     
-    options.RefitFunction = 'kickedAA_decayFit' % mat file name of fit fcn
+    options.RefitFunction = 'dualGaussManualFit' % mat file name of fit fcn
     
     options.xConvert = 2; % set to scale independent variable for fitted data
 end
@@ -96,14 +96,23 @@ for ii = 1:N
         %% Set Up the Plots
         
         [xvector{ii}{j}, fig_handle] = ...
-            plotFit(avgRDs{ii}(j),this_run_plottitle,options);
+            plotFit(avgRDs{ii}(j),this_run_plottitle,options,ii,j);
         
         %% Ask about fit
         
-        good_fit_tags{ii}(j) = yes_no_choice();
+        [good_fit_tags{ii}(j), give_up] = yes_no_choice();
         
-        if ~good_fit_tags{ii}(j)
-            refitted_vec = refit(avgRDs{ii}(j),fitted_data_varname,fit_object_varname,xvector{ii}{j});
+        give_up = 0; % never give up (except when they hit cancel)
+        while ~give_up
+            
+            tempRD = avgRDs{ii}(j);
+            
+            refitted_vec = refit(avgRDs{ii}(j),fitted_data_varname,...
+                fit_object_varname,xvector{ii}{j},options);
+            
+             [good_fit_tags{ii}(j), give_up] = yes_no_choice();
+             
+            plotFit(avgRDs{ii}(j),this_run_plottitle,options,ii,j)
         end
         
     end
@@ -113,7 +122,11 @@ end
 end
 
 function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options,ii,j)
-    % make an x-vector
+    
+        fitted_data_varname = options.FittedDataVarname;
+        fit_object_varname = options.FitObjectVarname;
+
+        % make an x-vector
         xvector = (1:length([this_avgRD.(fitted_data_varname)])) * options.xConvert;
 
         fig_handle = figure(800);
@@ -149,7 +162,7 @@ function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options,i
         colormap(inferno);
 end
 
-function choice = yes_no_choice()
+function [choice, give_up] = yes_no_choice()
 % YES_NO_CHOICE returns 1 if the user chooses true, 0 if the user choose
 % false.
 
@@ -162,17 +175,30 @@ function choice = yes_no_choice()
         switch answer
             case 'Yes'
                 choice = 1;
-            case 'No'
+                give_up = 1;
+            case 'No (Refit)'
                 choice = 0;
-            case {'','Stop Checking'}
+                give_up = 0;
+            case 'No (Skip)'
+                warning('Refit aborted. Fit goodness = 0.');
+                choice = 0;
+                give_up = 1;
+            case ''
                 error('Operation terminated by user input.');
         end
         
 end
 
 % function updated_fit_vector = refit(this_avgRD,fitted_data_varname,fit_object_varname,xvector)
-function updated_fit_vector = refit(this_avgRD,fitted_data_varname,xvector)
+function updated_fit_vector = refit(this_avgRD,fitted_data_varname,xvector,options)
     ydata = this_avgRD.(fitted_data_varname);
     xdata = xvector;
+    
+    switch options.RefitFunction 
+        case "dualGaussManualFit"
+            [Y, Y1, Y2, roiRect] = dualGaussManualFit(xdata,ydata,...
+                'PlotFit',0);
+            updated_fit_vector = Y;
+    end
     
 end
