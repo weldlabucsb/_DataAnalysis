@@ -14,8 +14,9 @@ arguments
 end
 arguments
     options.Position = [1469, 390, 765, 420];
+    
     options.RunVars = struct()
-    options.HeldVars = {}
+    options.HeldVars = {'T','tau'}
 end
 
 if class(RunDatas) ~= "cell" && length(RunDatas) == 1
@@ -27,9 +28,16 @@ N = length(RunDatas);
 heldvars = {'T','tau'};
 
 if options.RunVars ~= []
-    unpackRunVars(options.RunVars);
-    heldvars = options.RunVars.heldvars_each;
-    varied_var = options.RunVars.varied_var;
+    % by default uses heldvars_each
+    [varied_var,...
+        heldvars_each,...
+        heldvars_all] = unpackRunVars(options.RunVars);
+    heldvars = heldvars_each;
+elseif isequal( options.HeldVars, {'T','tau'} )
+    heldvars = options.HeldVars;
+else
+    heldvars = options.HeldVars;
+end
 
 fitted_data_varname = 'summedODy';
 fit_object_varname = 'fitData_y'; % here actually just a fit evaluated on same axis
