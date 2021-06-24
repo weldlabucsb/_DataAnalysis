@@ -16,7 +16,7 @@ arguments
     options.Position = [1469, 390, 765, 420];
     
     options.RunVars = struct()
-    options.HeldVars = {'T','tau'}
+    options.ManualHeldVars = {'T','tau'}
     
     options.FittedDataVarname = 'summedODy'
     options.FitObjectVarname = 'fitData_y'
@@ -27,6 +27,7 @@ arguments
     options.xConvert = 2 % set to scale independent variable for fitted data
     
     options.SkipRefitting = 0
+    options.SkipODPreview = 0
 end
 
 %% Definitions
@@ -47,10 +48,10 @@ if ~isequal(options.RunVars,struct())
 
     heldvars = heldvars_each; % by default uses heldvars_each
   
-elseif isequal( options.HeldVars, {'T','tau'} )
-    heldvars = options.HeldVars;
+elseif isequal( options.ManualHeldVars, {'T','tau'} )
+    heldvars = options.ManualHeldVars;
 else
-    heldvars = options.HeldVars;
+    heldvars = options.ManualHeldVars;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -63,7 +64,7 @@ N = length(RunDatas);
 
 % here in case I break something with this
 % fns = {'summedODy','(fit_object_varname)','OD','cloudSD_y'};
-fns = {fitted_data_varname,fit_object_varname,fit_param_varname};
+fns = {fitted_data_varname,fit_object_varname,fit_param_varname,'OD'};
 
 
 N_to_check = 0; %init
@@ -105,7 +106,8 @@ for ii = 1:N
         [good_fit_tags{ii}(j), give_up] = yes_no_choice();
         
         if ~options.SkipRefitting
-            give_up = 0; % never give up (except when they hit cancel)
+            
+            % never give up (except when they hit cancel)
             while ~give_up
 
                 tempRD = avgRDs{ii}(j);
@@ -169,10 +171,12 @@ function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options,i
         legend(["Data","Fit"]);
         set(fig_handle,'Position',options.Position);
         
-        % OD preview
-        nexttile;
-        imagesc([this_avgRD.OD].');
-        colormap(inferno);
+        if ~options.SkipODPreview
+            % OD preview
+            nexttile;
+            imagesc([this_avgRD.OD].');
+            colormap(inferno);
+        end
 end
 
 function [choice, give_up] = yes_no_choice()
@@ -193,7 +197,7 @@ function [choice, give_up] = yes_no_choice()
                 choice = 0;
                 give_up = 0;
             case 'No (Skip)'
-                warning('Refit aborted. Fit goodness = 0.');
+                warning('All hope is lost. Setting fit goodness = 0.');
                 choice = 0;
                 give_up = 1;
             case ''
