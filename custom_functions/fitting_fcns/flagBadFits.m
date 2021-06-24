@@ -13,7 +13,9 @@ arguments
    varied_var = 'LatticeHold'
 end
 arguments
-    options.Position = [1469, 390, 765, 420]
+    options.Position = [1469, 390, 765, 420];
+    options.RunVars = struct()
+    options.HeldVars = {}
 end
 
 if class(RunDatas) ~= "cell" && length(RunDatas) == 1
@@ -23,6 +25,11 @@ end
 N = length(RunDatas);
 
 heldvars = {'T','tau'};
+
+if options.RunVars ~= []
+    unpackRunVars(options.RunVars);
+    heldvars = options.RunVars.heldvars_each;
+    varied_var = options.RunVars.varied_var;
 
 fitted_data_varname = 'summedODy';
 fit_object_varname = 'fitData_y'; % here actually just a fit evaluated on same axis
@@ -48,8 +55,6 @@ disp(['There are a total of ' num2str(N_to_check) ' fits to check. Starting...']
 %%
 
 for ii = 1:N
-    
-
     
     Ncurves = length(avgRDs{ii});
     
