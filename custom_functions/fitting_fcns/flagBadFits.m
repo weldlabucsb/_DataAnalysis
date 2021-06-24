@@ -112,15 +112,15 @@ for ii = 1:N
 
                 tempRD = avgRDs{ii}(j);
 
-                [refit_vector,refit_param] = refit(avgRDs{ii}(j),fitted_data_varname,...
-                    fit_object_varname,xvector{ii}{j},options);
+                [refit_vector,refit_param] = refit(avgRDs{ii}(j),...
+                    fitted_data_varname,xvector{ii}{j},options);
 
                 tempRD.(fit_object_varname) = refit_vector;
                 tempRD.(fit_param_varname) = refit_param;
 
                 [good_fit_tags{ii}(j), give_up] = yes_no_choice();
 
-                plotFit(tempRD,this_run_plottitle,options,ii,j)
+                plotFit(tempRD,this_run_plottitle,options,ii,j,N,Ncurves)
 
                 if good_fit_tags{ii}(j)
                     avgRDs{ii}(j) = tempRD;
@@ -186,8 +186,8 @@ function [choice, give_up] = yes_no_choice()
     answer = questdlg('Good fit?',...
             'Check out the fit...',...
             'Yes',...
-            'No',...
-            'Stop Checking',...
+            'No (Refit)',...
+            'No (Skip)',...
             'Yes'); % default YES
         switch answer
             case 'Yes'
@@ -207,7 +207,7 @@ function [choice, give_up] = yes_no_choice()
 end
 
 % function updated_fit_vector = refit(this_avgRD,fitted_data_varname,fit_object_varname,xvector)
-function [refit_vector, refit_param]  = refit(this_avgRD,fitted_data_varname,xvector,options)
+function [refit_vector, refit_fit_object, refit_param]  = refit(this_avgRD,fitted_data_varname,xvector,options)
     ydata = this_avgRD.(fitted_data_varname);
     xdata = xvector;
     
@@ -215,7 +215,8 @@ function [refit_vector, refit_param]  = refit(this_avgRD,fitted_data_varname,xve
         case "dualGaussManualFit"
             [Y, Y1, Y2, roiRect] = dualGaussManualFit(xdata,ydata,...
                 'PlotFit',0);
-            updated_fit_vector = Y;
+            refit_vector = Y;
+            refit_fit_object = Y1;
             refit_param = Y1.sigma1;
     end
     
