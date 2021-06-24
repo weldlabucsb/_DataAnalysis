@@ -4,9 +4,8 @@ function [good_fit_tags, avgRDs] = flagBadFits(RunDatas,varied_var,options)
 % where 1 corresponds to a good fit and 0 corresponds to a bad fit. The
 % goodness of a fit is user-determined.
 % 
-% Currently only supports checking the summedODy fit as stored in
-% atomdata.fitData_y. Functionality to be added later to assess a general
-% cell array of fit objects.
+% By default, set up to do dual gaussian fits on data for kickedAA pulse
+% decay rate comparison
 
 arguments
    RunDatas
@@ -20,14 +19,16 @@ arguments
     
     options.FittedDataVarname = 'summedODy'
     options.FitObjectVarname = 'fitData_y'
-    options.FitParameterVarname = 'cloudSD_y' % if there is an extracted value from the fit, display it here
+    options.FitParameterVarname = 'gaussAtomNumber_y' % if there is an extracted value from the fit, display it here
     
     options.RefitFunction = 'dualGaussManualFit' % mat file name of fit fcn
     
     options.xConvert = 2 % set to scale independent variable for fitted data
     
-    options.SkipRefitting = 0
+    options.SkipRefit = 0
     options.SkipODPreview = 0
+    
+    options.FitParameterPrecision = '%1.2e' % controls display of fit parameter on plots
 end
 
 %% Definitions
@@ -103,17 +104,19 @@ for ii = 1:N
         
         %% Ask about fit
         
-        [good_fit_tags{ii}(j), give_up] = yes_no_choice();
         
-        if ~options.SkipRefitting
+        [good_fit_tags{ii}(j), give_up] = yes_no_choice(options);
+        
+        if ~options.SkipRefit
             
             % never give up (except when they hit cancel)
             while ~give_up
-
-                tempRD = avgRDs{ii}(j);
+                
+                tempRD = avgRDs{ii}(j); % a copy
                 
                 try
                     
+                    %%%%%%%%%% REFIT %%%%%%%%%%
                     [refit_vector,refit_param] = refit(avgRDs{ii}(j),...
                         fitted_data_varname,xvector{ii}{j},options);
                     
@@ -127,8 +130,12 @@ for ii = 1:N
                     if good_fit_tags{ii}(j)
                         avgRDs{ii}(j) = tempRD;
                     end
+                    %%%%%%%%%%%%%%%%%%%%%%%%%%%
                     
+                    
+                %%%%%%%%% Error Handling %%%%%%%%%%%    
                 catch ME
+                    
                     switch ME.identifier
                         case 'curvefit:fit:nanComputed'
                             warning('NaN computed by fit. Try grabbing a different domain/range.');
@@ -142,12 +149,10 @@ for ii = 1:N
                     end
                    
                 end
-
             end
         end
         
     end
-
 end
 
 end
@@ -180,7 +185,7 @@ function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options,i
             ", Curve ",num2str(j),"/",num2str(Ncurves));
         this_run_plottitle{end+1} = strcat(...
             "Fit ",options.FitParameterVarname,": ",...
-            num2str(this_avgRD.( options.FitParameterVarname )) );
+            num2str(this_avgRD.( options.FitParameterVarname ),options.FitParameterPrecision) );
         title(this_run_plottitle);
         
         % other plot stuff
@@ -196,30 +201,40 @@ function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options,i
         end
 end
 
-function [choice, give_up] = yes_no_choice()
+function [choice, give_up] = yes_no_choice(options)
 % YES_NO_CHOICE returns 1 if the user chooses true, 0 if the user choose
 % false.
 
-    answer = questdlg('Good fit?',...
-            'Check out the fit...',...
-            'Yes',...
-            'No (Refit)',...
-            'No (Skip)',...
-            'Yes'); % default YES
-        switch answer
-            case 'Yes'
-                choice = 1;
-                give_up = 1;
-            case 'No (Refit)'
-                choice = 0;
-                give_up = 0;
-            case 'No (Skip)'
-                warning('All hope is lost. Setting fit goodness = 0.');
-                choice = 0;
-                give_up = 1;
-            case ''
-                error('Operation terminated by user input.');
-        end
+    switch options.SkipRefit
+        case 0
+            answer = questdlg('Good fit?',...
+                    'Check out the fit...',...
+                    'Yes',...
+                    'No (Refit)',...
+                    'No (Skip)',...
+                    'Yes'); % default YES
+        case 1
+            answer = questdlg('Good fit?',...
+                    'Check out the fit...',...
+                    'Yes',...
+                    'No',...
+                    'Yes'); % default YES
+    end
+        
+            switch answer
+                case 'Yes'
+                    choice = 1;
+                    give_up = 1;
+                case 'No (Refit)'
+                    choice = 0;
+                    give_up = 0;
+                case {'No (Skip)','No'}
+                    disp("All hope is lost. Setting fit goodness = 0.");
+                    choice = 0;
+                    give_up = 1;
+                case ''
+                    error('Operation terminated by user input.');
+            end
         
 end
 
