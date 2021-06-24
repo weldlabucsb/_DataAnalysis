@@ -112,7 +112,7 @@ end
 
 end
 
-function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options)
+function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options,ii,j)
     % make an x-vector
         xvector = (1:length([this_avgRD.(fitted_data_varname)])) * options.xConvert;
 
