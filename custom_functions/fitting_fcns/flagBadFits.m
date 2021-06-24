@@ -38,7 +38,7 @@ RunDatas = cellWrap(RunDatas);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 % unpack run variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
-if options.RunVars ~= []
+if ~isequal(options.RunVars,struct())
     [varied_var,...
     heldvars_each,...
     heldvars_all] = unpackRunVars(options.RunVars);
@@ -96,7 +96,7 @@ for ii = 1:N
         %% Set Up the Plots
         
         [xvector{ii}{j}, fig_handle] = ...
-            plotFit(avgRDs{ii}(j),this_run_plottitle,options,ii,j);
+            plotFit(avgRDs{ii}(j),this_run_plottitle,options,ii,j,N);
         
         %% Ask about fit
         
@@ -121,7 +121,7 @@ end
 
 end
 
-function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options,ii,j)
+function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options,ii,j,N)
     
         fitted_data_varname = options.FittedDataVarname;
         fit_object_varname = options.FitObjectVarname;
