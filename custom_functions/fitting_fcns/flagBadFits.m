@@ -88,21 +88,22 @@ for ii = 1:N
     % how many shots in each run
     Ncurves = length(avgRDs{ii});
     
-    this_run_title = plotTitle(RunDatas{ii},fitted_data_varname,varied_var,heldvars);
+    this_run_plottitle = plotTitle(RunDatas{ii},fitted_data_varname,varied_var,heldvars);
     
     % iterate over shots
     for j = 1:Ncurves
         
         %% Set Up the Plots
         
-        [xvector{ii}{j}, fig_handle] = plotDataOnFit(avgRDs{ii}(j),
+        [xvector{ii}{j}, fig_handle] = ...
+            plotFit(avgRDs{ii}(j),this_run_plottitle,options);
         
         %% Ask about fit
         
         good_fit_tags{ii}(j) = yes_no_choice();
         
         if ~good_fit_tags{ii}(j)
-            refitted_vec = refit(RunDatas,fitted_data_varname,fit_object_varname);
+            refitted_vec = refit(avgRDs{ii}(j),fitted_data_varname,fit_object_varname,xvector{ii}{j});
         end
         
     end
@@ -111,7 +112,7 @@ end
 
 end
 
-function [xvector, fig_handle] = plotDataOnFit(this_avgRD,this_run_title,options)
+function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options)
     % make an x-vector
         xvector = (1:length([this_avgRD.(fitted_data_varname)])) * options.xConvert;
 
@@ -130,12 +131,12 @@ function [xvector, fig_handle] = plotDataOnFit(this_avgRD,this_run_title,options
         
         
         % title with good info about this specific plot (progress, fit val)
-        this_run_title(1) = [];
-        this_run_title{end+1} = strcat("Run ",num2str(ii),"/",num2str(N),...
+        this_run_plottitle(1) = [];
+        this_run_plottitle{end+1} = strcat("Run ",num2str(ii),"/",num2str(N),...
             ", Curve ",num2str(j),"/",num2str(Ncurves));
-        this_run_title{end+1} = strcat("Fit ",fit_param_varname,": ",...
+        this_run_plottitle{end+1} = strcat("Fit ",fit_param_varname,": ",...
             num2str(this_avgRD.( fit_param_varname )) );
-        title(this_run_title);
+        title(this_run_plottitle);
         
         % other plot stuff
         ylabel("Data: ",fitted_data_varname);
@@ -169,6 +170,9 @@ function choice = yes_no_choice()
         
 end
 
-function updated_fit_vector = refit(RunDatas,fitted_data_varname,fit_object_varname)
-    ydata = RunDatas.(fitted_data_varname)
+% function updated_fit_vector = refit(this_avgRD,fitted_data_varname,fit_object_varname,xvector)
+function updated_fit_vector = refit(this_avgRD,fitted_data_varname,xvector)
+    ydata = this_avgRD.(fitted_data_varname);
+    xdata = xvector;
+    
 end
