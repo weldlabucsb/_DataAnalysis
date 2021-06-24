@@ -117,11 +117,11 @@ for ii = 1:N
 
                 tempRD.(fit_object_varname) = refit_vector;
                 tempRD.(fit_param_varname) = refit_param;
-
-                [good_fit_tags{ii}(j), give_up] = yes_no_choice();
-
+                
                 plotFit(tempRD,this_run_plottitle,options,ii,j,N,Ncurves)
-
+                
+                [good_fit_tags{ii}(j), give_up] = yes_no_choice();
+                
                 if good_fit_tags{ii}(j)
                     avgRDs{ii}(j) = tempRD;
                 end
@@ -207,7 +207,7 @@ function [choice, give_up] = yes_no_choice()
 end
 
 % function updated_fit_vector = refit(this_avgRD,fitted_data_varname,fit_object_varname,xvector)
-function [refit_vector, refit_fit_object, refit_param]  = refit(this_avgRD,fitted_data_varname,xvector,options)
+function [refit_vector, refit_param, refit_fit_object]  = refit(this_avgRD,fitted_data_varname,xvector,options)
     ydata = this_avgRD.(fitted_data_varname);
     xdata = xvector;
     
