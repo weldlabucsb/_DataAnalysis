@@ -29,6 +29,8 @@ arguments
     options.SkipODPreview = 0
     
     options.FitParameterPrecision = '%1.2e' % controls display of fit parameter on plots
+    
+    options.OutputOnError = 0
 end
 
 %% Definitions
@@ -147,7 +149,15 @@ for ii = 1:N
                             warning('Refit figure closed. Verify how to proceed.')
                             [good_fit_tags{ii}(j), give_up] = yes_no_choice();
                         otherwise
-                            error(['Unknown error: ' ME.message]);
+                            if options.OutputOnError
+                                error_output.good_fit_tags = good_fit_tags;
+                                error_output.avgRDs = avgRDs;
+                                
+                                error_output
+                            end
+                            
+                                error(['Unknown error: ' ME.message]);
+                            
                     end
                    
                 end
