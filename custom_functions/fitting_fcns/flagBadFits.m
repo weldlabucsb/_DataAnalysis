@@ -30,7 +30,7 @@ arguments
     
     options.FitParameterPrecision = '%1.2e' % controls display of fit parameter on plots
     
-    options.OutputOnError = 0
+%     options.OutputOnError = 0
 end
 
 %% Definitions
@@ -149,14 +149,9 @@ for ii = 1:N
                             warning('Refit figure closed. Verify how to proceed.')
                             [good_fit_tags{ii}(j), give_up] = yes_no_choice();
                         otherwise
-                            if options.OutputOnError
-                                error_output.good_fit_tags = good_fit_tags;
-                                error_output.avgRDs = avgRDs;
-                                
-                                error_output
-                            end
                             
-                                error(['Unknown error: ' ME.message]);
+%                             outputWorkSoFar(good_fit_tags,avgRDs,options) % DO NOT SUPPRESS
+                            error(['Unknown error: ' ME.message]);
                             
                     end
                    
@@ -168,6 +163,13 @@ for ii = 1:N
 end
 
 end
+
+% function error_output = outputWorkSoFar(good_fit_tags,avgRDs,options)
+%     if options.OutputOnError
+%         error_output.good_fit_tags = good_fit_tags;
+%         error_output.avgRDs = avgRDs;
+%     end
+% end
 
 function [xvector, fig_handle] = plotFit(this_avgRD,this_run_plottitle,options,ii,j,N,Ncurves)
     
