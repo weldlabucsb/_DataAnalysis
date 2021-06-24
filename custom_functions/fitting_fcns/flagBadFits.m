@@ -125,7 +125,7 @@ for ii = 1:N
 
                     plotFit(tempRD,this_run_plottitle,options,ii,j,N,Ncurves);
 
-                    [good_fit_tags{ii}(j), give_up] = yes_no_choice();
+                    [good_fit_tags{ii}(j), give_up] = yes_no_choice(options);
 
                     if good_fit_tags{ii}(j)
                         avgRDs{ii}(j) = tempRD;
@@ -146,6 +146,8 @@ for ii = 1:N
                         case 'MATLAB:class:InvalidHandle'
                             warning('Refit figure closed. Verify how to proceed.')
                             [good_fit_tags{ii}(j), give_up] = yes_no_choice();
+                        otherwise
+                            error(['Unknown error: ' ME.message]);
                     end
                    
                 end
