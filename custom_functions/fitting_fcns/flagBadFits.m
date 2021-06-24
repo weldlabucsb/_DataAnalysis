@@ -20,108 +20,132 @@ arguments
     
     options.FittedDataVarname = 'summedODy'
     options.FitObjectVarname = 'fitData_y'
+    options.FitParameterVarname = 'cloudSD_y' % if there is an extracted value from the fit, display it here
+    
+    options.RefitFunction = 'kickedAA_decayFit' % mat file name of fit fcn
+    
+    options.xConvert = 2; % set to scale independent variable for fitted data
 end
 
-if class(RunDatas) ~= "cell" && length(RunDatas) == 1
-   RunDatas = {RunDatas}; 
-end
+%% Definitions
 
+
+%% Setup
+
+% required bc I interate over cell elements
+RunDatas = cellWrap(RunDatas);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% unpack run variables
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if options.RunVars ~= []
-    % by default uses heldvars_each
     [varied_var,...
-        heldvars_each,...
-        heldvars_all] = unpackRunVars(options.RunVars);
-    heldvars = heldvars_each;
+    heldvars_each,...
+    heldvars_all] = unpackRunVars(options.RunVars);
+
+    heldvars = heldvars_each; % by default uses heldvars_each
+  
 elseif isequal( options.HeldVars, {'T','tau'} )
     heldvars = options.HeldVars;
 else
     heldvars = options.HeldVars;
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% aliases for long options
 fitted_data_varname = options.FittedDataVarname;
 fit_object_varname = options.FitObjectVarname; % here actually just a fit evaluated on same axis
+fit_param_varname = options.FitParameterVarname;
 
 N = length(RunDatas);
 
-% fns = {'summedODy','fitData_y','OD','cloudSD_y'};
+% here in case I break something with this
+% fns = {'summedODy','(fit_object_varname)','OD','cloudSD_y'};
 fns = {fitted_data_varname,fit_object_varname};
 
-xconvert_to_um = 2;
 
-N_to_check = 0;
-
-good_fit_tags = cell( size(RunDatas) );
+N_to_check = 0; %init
+good_fit_tags = cell( size(RunDatas) ); %make a cell, element for each run
 for ii = 1:length(good_fit_tags)
     
+    % independent variable = t
     [avgRDs{ii}, t{ii}] = avgRepeats(RunDatas{ii},varied_var,fns);
     
+    % add as many elements to list as number of runs
    good_fit_tags{ii} = zeros( size(avgRDs{ii}) ); 
+   
+   % for "progress bar"
    N_to_check = N_to_check + length(good_fit_tags{ii});
 end
 
+% disp starting message
 disp(['There are a total of ' num2str(N_to_check) ' fits to check. Starting...']);
 
 %%
 
 for ii = 1:N
     
+    % how many shots in each run
     Ncurves = length(avgRDs{ii});
     
+    this_run_title = plotTitle(RunDatas{ii},fitted_data_varname,varied_var,heldvars);
+    
+    % iterate over shots
     for j = 1:Ncurves
         
-        xvector{ii}{j} = (1:length([avgRDs{ii}(j).summedODy])) * xconvert_to_um;
-
-        h = figure(800);
+        %% Set Up the Plots
         
-        tiledlayout(2,1,'TileSpacing','none');
+        [xvector{ii}{j}, fig_handle] = plotDataOnFit(avgRDs{ii}(j),
         
-        nexttile;
+        %% Ask about fit
         
-        plot( xvector{ii}{j}, [avgRDs{ii}(j).summedODy] );
-        hold on;
-        plot(xvector{ii}{j}, [avgRDs{ii}(j).fitData_y] );
-        hold off;
-        xlim([xvector{ii}{j}(1), xvector{ii}{j}(end)]);
-        
-        
-        titl = plotTitle(RunDatas{ii},'summedODy',varied_var,heldvars);
-        titl(1) = [];
-        titl{end+1} = strcat("Run ",num2str(ii),"/",num2str(N),...
-            ", Curve ",num2str(j),"/",num2str(Ncurves));
-        titl{end+1} = strcat("Fit Width: ",num2str(avgRDs{ii}(j).cloudSD_y*1e6));
-        
-        title(titl);
-        
-        nexttile;
-        imagesc([avgRDs{ii}(j).OD].');
-        colormap(inferno);
-        
-        set(h,'Position',options.Position);
-        
-%         answer = questdlg('Good fit?',...
-%             'Check out the fit...',...
-%             'Yes',...
-%             'No',...
-%             'Stop Checking',...
-%             'Yes'); % default YES
-%         switch answer
-%             case 'Yes'
-%                 good_fit_tags{ii}(j) = 1;
-%             case 'No'
-%                 good_fit_tags{ii}(j) = 0;
-%             case {'','Stop Checking'}
-%                 error('Operation terminated by user input.');
-%         end
         good_fit_tags{ii}(j) = yes_no_choice();
         
         if ~good_fit_tags{ii}(j)
-            refit()
+            refitted_vec = refit(RunDatas,fitted_data_varname,fit_object_varname);
         end
         
     end
 
 end
 
+end
+
+function [xvector, fig_handle] = plotDataOnFit(this_avgRD,this_run_title,options)
+    % make an x-vector
+        xvector = (1:length([this_avgRD.(fitted_data_varname)])) * options.xConvert;
+
+        fig_handle = figure(800);
+        tiledlayout(2,1,'TileSpacing','none');
+        nexttile;
+        
+        % plot the data
+        plot( xvector, [this_avgRD.(fitted_data_varname)] );
+        hold on;
+        % plot the fit
+        plot(xvector, [this_avgRD.(fit_object_varname)] );
+        hold off;
+        % crop to tight x-axis
+        xlim([xvector(1), xvector(end)]);
+        
+        
+        % title with good info about this specific plot (progress, fit val)
+        this_run_title(1) = [];
+        this_run_title{end+1} = strcat("Run ",num2str(ii),"/",num2str(N),...
+            ", Curve ",num2str(j),"/",num2str(Ncurves));
+        this_run_title{end+1} = strcat("Fit ",fit_param_varname,": ",...
+            num2str(this_avgRD.( fit_param_varname )) );
+        title(this_run_title);
+        
+        % other plot stuff
+        ylabel("Data: ",fitted_data_varname);
+        legend(["Data","Fit"]);
+        set(fig_handle,'Position',options.Position);
+        
+        % OD preview
+        nexttile;
+        imagesc([this_avgRD.OD].');
+        colormap(inferno);
 end
 
 function choice = yes_no_choice()
@@ -143,4 +167,8 @@ function choice = yes_no_choice()
                 error('Operation terminated by user input.');
         end
         
+end
+
+function updated_fit_vector = refit(RunDatas,fitted_data_varname,fit_object_varname)
+    ydata = RunDatas.(fitted_data_varname)
 end
