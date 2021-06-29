@@ -264,18 +264,28 @@ function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(th
     
     switch options.RefitFunction 
         case "dualGaussManualFit"
+            
+            params;
+            
             [Y, Y1, Y2, fit_roi_rect] = dualGaussManualFit(xdata,ydata,...
                 'PlotFit',0);
             refit_vector = Y;
             
+            cfig = gcf;
             figure(450);
             plot( xvector, Y1(xvector) );
+            g1 = sqrt(2*pi)*Y1.sigma1*Y1.A1/(pixelsize/mag); 
             hold on;
             plot( xvector, Y2(xvector) );
-            
-            legend(["Y1" "Y2"]);
+            g2 = sqrt(2*pi)*Y2.sigma2*Y2.A2/(pixelsize/mag); 
+            hold off;
+            legend([...
+                strcat("Y1: ", num2str(g1,options.FitParameterPrecision));...
+                strcat("Y2: ", num2str(g2,options.FitParameterPrecision))]);
+            figure(cfig);
             
             choice = questdlg('Which is central population?',...
+                'Check the fits...',...
                 'Y1',...
                 'Y2',...
                 'Bad Fit',...
@@ -295,11 +305,6 @@ function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(th
                     amp = 0;
                     warning('Both fits bad.');
             end
-            
-%             sigma = Y1.sigma1;
-%             amp = Y1.A1;
-            
-            params;
              
             % compute gaussAtomNumber_y from fit
             refit_param = sqrt(2*pi)*sigma*amp/(pixelsize/mag); 
