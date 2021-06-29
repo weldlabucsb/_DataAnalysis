@@ -35,7 +35,6 @@ end
 
 %% Definitions
 
-
 %% Setup
 
 % required bc I interate over cell elements
@@ -119,11 +118,13 @@ for ii = 1:N
                 try
                     
                     %%%%%%%%%% REFIT %%%%%%%%%%
-                    [refit_vector,refit_param] = refit(avgRDs{ii}(j),...
-                        fitted_data_varname,xvector{ii}{j},options);
+                    [refit_vector, refit_param, refit_fit_object, fit_roi_rect] = ...
+                        refit(avgRDs{ii}(j),fitted_data_varname,xvector{ii}{j},options);
                     
                     tempRD.(fit_object_varname) = refit_vector;
                     tempRD.(fit_param_varname) = refit_param;
+                    tempRD.refitROI = fit_roi_rect;
+                    tempRD.refitFit = refit_fit_object;
 
                     plotFit(tempRD,this_run_plottitle,options,ii,j,N,Ncurves);
 
@@ -256,17 +257,25 @@ function [choice, give_up] = yes_no_choice(options)
 end
 
 % function updated_fit_vector = refit(this_avgRD,fitted_data_varname,fit_object_varname,xvector)
-function [refit_vector, refit_param, refit_fit_object]  = refit(this_avgRD,fitted_data_varname,xvector,options)
+function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(this_avgRD,fitted_data_varname,xvector,options)
     ydata = this_avgRD.(fitted_data_varname);
     xdata = xvector;
     
     switch options.RefitFunction 
         case "dualGaussManualFit"
-            [Y, Y1, Y2, roiRect] = dualGaussManualFit(xdata,ydata,...
+            [Y, Y1, Y2, fit_roi_rect] = dualGaussManualFit(xdata,ydata,...
                 'PlotFit',0);
             refit_vector = Y;
-            refit_fit_object = Y1;
-            refit_param = Y1.sigma1;
+            refit_fit_object1 = Y1;
+            refit_fit_object2 = Y2;
+            
+            sigma = Y1.sigma1;
+            amp = Y1.A1;
+            
+            params;
+             
+            % compute gaussAtomNumber_y from fit
+            refit_param = sqrt(2*pi)*sigma*amp/(pixelsize/mag); 
     end
     
 end
