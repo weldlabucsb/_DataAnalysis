@@ -12,6 +12,8 @@ arguments
     options.NSamples = 31 %
     options.PrimaryLatticeDepth = 10 % in 1064 lattice Ers.
     
+    options.ExtraFilterWindows = {} % cell array of doubles, {[f1 f2], [f3 f4], ...}, where f's are in Hz. Filters in these windows.
+    
     options.FigurePosition = [2684, 431, 1059, 715] % where the figure is placed by default
     
     options.PeriodsGraphed = 3 % how many periods (T) of the pulse to plot.
@@ -22,6 +24,7 @@ arguments
     options.SkipFilePicker = 1 % if false, opens file picker for placing each saved file
     options.OpenSaveDirectory = 0 % if true, opens save directory after saving on Windows machines.
     
+    options.SkipFiltering = 0
     options.SkipPulseChoiceDialog = 0 % if false, asks whether you want to save Gaussian, filtered gaussian, or truncated filtered gauss pulse.
     
     options.SaveFig = 1 % toggles saving of fig file
@@ -84,7 +87,7 @@ end
     
     if ~options.SkipFiltering
         % filter the gaussian pulse
-        Y_filt = multiBandStop(Y_gauss,transitions,Fs);
+        Y_filt = multiBandStop(Y_gauss,transitions,Fs,'ExtraFilterWindows',options.ExtraFilterWindows);
 
         % zero out the negative parts of the filtered pulse
         Y_filt(Y_filt < 0) = 0;
@@ -376,12 +379,30 @@ Y = repmat(yg(cycle_time_vector), 1,  NSamples);
 
 end
 
-function Y_filtered = multiBandStop(Y,frequency_ranges_Hz,Fs)
+function Y_filtered = multiBandStop(Y,frequency_ranges_Hz,Fs,options)
+
+    arguments
+        Y
+        frequency_ranges_Hz
+        Fs
+    end
+    arguments
+        options.ExtraFilterWindows = {}
+    end
+    
+    exfilt = options.ExtraFilterWindows;
     
     % get rid of empty cells
     frequency_ranges_Hz = frequency_ranges_Hz( cellfun(@(x) ~isempty(x), frequency_ranges_Hz) );
     
     Y_filtered = Y;
+    
+    if ~isempty(exfilt)
+        for j = 1:length(exfilt)
+            disp(['Filtered ' num2str(j) '/' num2str( length(exfilt) ) ' of extra frequency bands.' ])
+            Y_filtered = bandstop(Y_filtered, exfilt{j}, Fs);
+        end
+    end
     
     for j = 1:length(frequency_ranges_Hz)
         disp(['Filtered ' num2str(j) '/' num2str( length(frequency_ranges_Hz) ) ' of specified frequency bands.' ])
