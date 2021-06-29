@@ -258,14 +258,6 @@ end
 
 % function updated_fit_vector = refit(this_avgRD,fitted_data_varname,fit_object_varname,xvector)
 function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(this_avgRD,fitted_data_varname,xvector,options)
-    arguments
-        this_avgRD
-        fitted_data_varname
-        xvector
-    end
-    arguments
-        options.FitRect = []
-    end
 
     ydata = this_avgRD.(fitted_data_varname);
     xdata = xvector;
