@@ -28,6 +28,7 @@ function [Y, Y1, Y2, roiRect] = dualGaussManualFit(x,y,options)
         options.MaximumAmplitude (1,1) double = 10000
         options.FitRects = [];
         options.LineWidth = 1.5;
+        options.Position = [920, 449, 892, 679];
     end
     
     if ~isempty(options.OriginalFigureHandle)
@@ -42,6 +43,7 @@ function [Y, Y1, Y2, roiRect] = dualGaussManualFit(x,y,options)
     if isempty(options.FitRects)
         % ask user for estimate of the peak width, height
         thisfig = figure();
+        set(thisfig,'Position',options.Position);
         plot(x,y,'LineWidth',1.5);
         roi = drawrectangle();
         roiRect = roi.Position;

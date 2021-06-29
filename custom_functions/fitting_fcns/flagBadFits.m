@@ -12,7 +12,7 @@ arguments
    varied_var = 'LatticeHold'
 end
 arguments
-    options.Position = [1469, 390, 765, 420];
+    options.Position = [1567, 438, 746, 464];
     
     options.RunVars = struct()
     options.ManualHeldVars = {'T','tau'}
@@ -34,7 +34,6 @@ arguments
 end
 
 %% Definitions
-
 
 %% Setup
 
@@ -67,7 +66,7 @@ N = length(RunDatas);
 
 % here in case I break something with this
 % fns = {'summedODy','(fit_object_varname)','OD','cloudSD_y'};
-fns = {fitted_data_varname,fit_object_varname,fit_param_varname,'OD'};
+fns = {fitted_data_varname,fit_object_varname,fit_param_varname,'OD','atomNumber'};
 
 
 N_to_check = 0; %init
@@ -76,6 +75,12 @@ for ii = 1:length(good_fit_tags)
     
     % independent variable = t
     [avgRDs{ii}, t{ii}] = avgRepeats(RunDatas{ii},varied_var,fns);
+    
+    for j = 1:length(avgRDs{ii})
+        avgRDs{ii}(j).T = RunDatas{ii}.ncVars.T;
+        avgRDs{ii}(j).tau = RunDatas{ii}.ncVars.tau;
+        avgRDs{ii}(j).PulseType = RunDatas{ii}.ncVars.PulseType;
+    end
     
     % add as many elements to list as number of runs
    good_fit_tags{ii} = zeros( size(avgRDs{ii}) ); 
@@ -90,6 +95,8 @@ disp(['There are a total of ' num2str(N_to_check) ' fits to check. Starting...']
 %%
 
 for ii = 1:N
+    
+    skipFlag = 0;
     
     % how many shots in each run
     Ncurves = length(avgRDs{ii});
@@ -119,15 +126,22 @@ for ii = 1:N
                 try
                     
                     %%%%%%%%%% REFIT %%%%%%%%%%
-                    [refit_vector,refit_param] = refit(avgRDs{ii}(j),...
-                        fitted_data_varname,xvector{ii}{j},options);
+                    [refit_vector, refit_param, skipFlag] = ...
+                        refit(avgRDs{ii}(j),fitted_data_varname,xvector{ii}{j},options);
                     
                     tempRD.(fit_object_varname) = refit_vector;
                     tempRD.(fit_param_varname) = refit_param;
+%                     tempRD.refitROI = fit_roi_rect;
+%                     tempRD.refitFit = refit_fit_object;
 
                     plotFit(tempRD,this_run_plottitle,options,ii,j,N,Ncurves);
-
-                    [good_fit_tags{ii}(j), give_up] = yes_no_choice(options);
+                    
+                    if ~skipFlag
+                        [good_fit_tags{ii}(j), give_up] = yes_no_choice(options);
+                    else 
+                        good_fit_tags{ii}(j:end) = 1;
+                        give_up = 1;
+                    end
 
                     if good_fit_tags{ii}(j)
                         avgRDs{ii}(j) = tempRD;
@@ -151,14 +165,22 @@ for ii = 1:N
                         otherwise
                             
 %                             outputWorkSoFar(good_fit_tags,avgRDs,options) % DO NOT SUPPRESS
-                            error(['Unknown error: ' ME.message]);
+                        error(['Unknown error: ' ME.message]);
                             
                     end
                    
                 end
             end
+            
+            if skipFlag
+                break;
+            end
+            
         end
         
+        if skipFlag
+            break;
+        end
     end
 end
 
@@ -256,17 +278,64 @@ function [choice, give_up] = yes_no_choice(options)
 end
 
 % function updated_fit_vector = refit(this_avgRD,fitted_data_varname,fit_object_varname,xvector)
-function [refit_vector, refit_param, refit_fit_object]  = refit(this_avgRD,fitted_data_varname,xvector,options)
+function [refit_vector, refit_param, skipFlag]  = refit(this_avgRD,fitted_data_varname,xvector,options)
+
     ydata = this_avgRD.(fitted_data_varname);
     xdata = xvector;
     
     switch options.RefitFunction 
         case "dualGaussManualFit"
-            [Y, Y1, Y2, roiRect] = dualGaussManualFit(xdata,ydata,...
+            
+            params;
+            
+            [Y, Y1, Y2, fit_roi_rect] = dualGaussManualFit(xdata,ydata,...
                 'PlotFit',0);
             refit_vector = Y;
-            refit_fit_object = Y1;
-            refit_param = Y1.sigma1;
+            
+            cfig = gcf;
+            tfig = figure(450);
+            set(tfig,'Position',options.Position);
+            plot( xvector, Y1(xvector) );
+            g1 = sqrt(2*pi)*Y1.sigma1*Y1.A1/(pixelsize/mag) * 1e-6; 
+            hold on;
+            plot( xvector, Y2(xvector) );
+            g2 = sqrt(2*pi)*Y2.sigma2*Y2.A2/(pixelsize/mag) * 1e-6; 
+            hold off;
+            legend([...
+                strcat("Y1: ", num2str(g1,options.FitParameterPrecision));...
+                strcat("Y2: ", num2str(g2,options.FitParameterPrecision))]);
+            
+            choice = questdlg('Which is central population?',...
+                'Check the fits...',...
+                'Y1',...
+                'Y2',...
+                'Local Pop = 0',...
+                'Y1');
+            
+            close(tfig);
+            figure(cfig);
+            
+            switch choice
+                case 'Y1'
+                    refit_fit_object = Y1;
+                    sigma = Y1.sigma1 * 1e-6;
+                    amp = Y1.A1;
+                    skipFlag = 0;
+                case 'Y2'
+                    refit_fit_object = Y2;
+                    sigma = Y2.sigma2 * 1e-6;
+                    amp = Y2.A2;
+                    skipFlag = 0;
+                case 'Local Pop = 0'
+                    refit_fit_object = [];
+                    sigma = 0;
+                    amp = 0;
+                    disp('Local pop = 0.');
+                    skipFlag = 1;
+            end
+             
+            % compute gaussAtomNumber_y from fit
+            refit_param = sqrt(2*pi)*sigma*amp/(pixelsize/mag); 
     end
     
 end

@@ -1,5 +1,5 @@
-function saveFigure(figure_handle, filename, varargin, options)
-% SAVE_FIGURE saves the figure specified by figure_handle to the location
+function saveFigures(figure_handle, filename, varargin, options)
+% SAVE_FIGURES saves the figure specified by figure_handle to the location
 % specified by filename. If a third argument is provided, it is treated as
 % the directory to which the figure should be saved.
 
