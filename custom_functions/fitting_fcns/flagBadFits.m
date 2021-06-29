@@ -123,8 +123,8 @@ for ii = 1:N
                     
                     tempRD.(fit_object_varname) = refit_vector;
                     tempRD.(fit_param_varname) = refit_param;
-                    tempRD.refitROI = fit_roi_rect;
-                    tempRD.refitFit = refit_fit_object;
+%                     tempRD.refitROI = fit_roi_rect;
+%                     tempRD.refitFit = refit_fit_object;
 
                     plotFit(tempRD,this_run_plottitle,options,ii,j,N,Ncurves);
 
@@ -152,7 +152,7 @@ for ii = 1:N
                         otherwise
                             
 %                             outputWorkSoFar(good_fit_tags,avgRDs,options) % DO NOT SUPPRESS
-                            error(['Unknown error: ' ME.message]);
+                        error(['Unknown error: ' ME.message]);
                             
                     end
                    
@@ -257,7 +257,7 @@ function [choice, give_up] = yes_no_choice(options)
 end
 
 % function updated_fit_vector = refit(this_avgRD,fitted_data_varname,fit_object_varname,xvector)
-function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(this_avgRD,fitted_data_varname,xvector,options)
+function [refit_vector, refit_param, refit_fit_object1, fit_roi_rect]  = refit(this_avgRD,fitted_data_varname,xvector,options)
 
     ydata = this_avgRD.(fitted_data_varname);
     xdata = xvector;
