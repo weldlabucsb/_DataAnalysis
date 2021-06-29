@@ -18,7 +18,7 @@ function  [decayFitResult, figure_handle] = kickedAA_decayFit_avgRDs(avgRD,optio
 %     t = t/1e3;
 
     t = [avgRD.LatticeHold];
-    tt = 0:10:1800;
+    tt = 0:10:3500;
     
     decayFitResult.T_us = unique([avgRD.T]);
     decayFitResult.tau_us = unique([avgRD.tau]);
@@ -102,7 +102,7 @@ function  [decayFitResult, figure_handle] = kickedAA_decayFit_avgRDs(avgRD,optio
 %             ylim(yLim);
 %         end
         xlim([0,max(t)]);
-         ylim([0, 5e4])
+         ylim([0, 1e5])
         
 %         pt = RunData.ncVars.PulseType;
         switch pt

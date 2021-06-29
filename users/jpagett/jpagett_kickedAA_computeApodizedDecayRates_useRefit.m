@@ -32,8 +32,9 @@ for ii = 1:N
         thisConfInt = confint(fitResult{ii}.fit);
         yneg(ii) = abs(fitResult{ii}.fit.b - thisConfInt(1));
         ypos(ii) = abs(thisConfInt(2) - fitResult{ii}.fit.b);
+        title(strcat("Fit Exponent: ", num2str(fitResult{ii}.decayRate * 1e3)));
 %         pause(0.25);
-    keyboard;
+        keyboard;
 %     catch
 %         fitResult{ii}.decayRate = 100;
 %         yneg(ii) = 0;
@@ -130,8 +131,8 @@ hold off;
 xlim([0,7])
 set(gca,'yscale','log')
 
-ylim([1e-15, 1e2])
-% ylim([0,1.1])
+% ylim([1e-15, 1e3])
+ylim([1e-3,1e2])
 
 ax = gca;
 ax.XTick = tickpos;
@@ -139,6 +140,6 @@ ax.XTickLabel = labels;
 
 ylabel('Decay Rate (s^{-1})');
 
-legend('Square','Gaussian','Filtered','Location','east');
+legend('Square','Gaussian','Filtered','Location','southeast');
 
 set(h,'Position',[-929, 1048, 329, 300]);
