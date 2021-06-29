@@ -12,7 +12,7 @@ arguments
    varied_var = 'LatticeHold'
 end
 arguments
-    options.Position = [920, 449, 892, 679];
+    options.Position = [1567, 438, 746, 464];
     
     options.RunVars = struct()
     options.ManualHeldVars = {'T','tau'}
@@ -283,7 +283,6 @@ function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(th
             legend([...
                 strcat("Y1: ", num2str(g1,options.FitParameterPrecision));...
                 strcat("Y2: ", num2str(g2,options.FitParameterPrecision))]);
-            figure(cfig);
             
             choice = questdlg('Which is central population?',...
                 'Check the fits...',...
@@ -293,6 +292,7 @@ function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(th
                 'Y1');
             
             close(tfig);
+            figure(cfig);
             
             switch choice
                 case 'Y1'
@@ -304,6 +304,7 @@ function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(th
                     sigma = Y2.sigma2 * 1e-6;
                     amp = Y2.A2;
                 case 'Local Pop = 0'
+                    refit_fit_object = [];
                     sigma = 0;
                     amp = 0;
                     warning('Both fits bad.');
