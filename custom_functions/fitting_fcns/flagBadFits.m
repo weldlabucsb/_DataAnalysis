@@ -257,7 +257,7 @@ function [choice, give_up] = yes_no_choice(options)
 end
 
 % function updated_fit_vector = refit(this_avgRD,fitted_data_varname,fit_object_varname,xvector)
-function [refit_vector, refit_param, refit_fit_object1, fit_roi_rect]  = refit(this_avgRD,fitted_data_varname,xvector,options)
+function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(this_avgRD,fitted_data_varname,xvector,options)
 
     ydata = this_avgRD.(fitted_data_varname);
     xdata = xvector;
@@ -267,11 +267,37 @@ function [refit_vector, refit_param, refit_fit_object1, fit_roi_rect]  = refit(t
             [Y, Y1, Y2, fit_roi_rect] = dualGaussManualFit(xdata,ydata,...
                 'PlotFit',0);
             refit_vector = Y;
-            refit_fit_object1 = Y1;
-            refit_fit_object2 = Y2;
             
-            sigma = Y1.sigma1;
-            amp = Y1.A1;
+            figure(450);
+            plot( xvector, Y1(xvector) );
+            hold on;
+            plot( xvector, Y2(xvector) );
+            
+            legend(['Y1','Y2']);
+            
+            ans = questdialog('Which is central population?',...
+                'Y1',...
+                'Y2',...
+                'Bad Fit',...
+                'Y1');
+            
+            switch ans
+                case 'Y1'
+                    refit_fit_object = Y1;
+                    sigma = Y1.sigma1;
+                    amp = Y1.A1;
+                case 'Y2'
+                    refit_fit_object = Y2;
+                    sigma = Y2.sigma2;
+                    amp = Y2.A2;
+                case 'Bad Fit'
+                    sigma = 0;
+                    amp = 0;
+                    warning('Both fits bad.');
+            end
+            
+%             sigma = Y1.sigma1;
+%             amp = Y1.A1;
             
             params;
              
