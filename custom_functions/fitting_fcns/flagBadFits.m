@@ -265,7 +265,7 @@ function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(th
     switch options.RefitFunction 
         case "dualGaussManualFit"
             [Y, Y1, Y2, fit_roi_rect] = dualGaussManualFit(xdata,ydata,...
-                'PlotFit',0,'FitRects',options.FitRect);
+                'PlotFit',0);
             refit_vector = Y;
             refit_fit_object1 = Y1;
             refit_fit_object2 = Y2;
