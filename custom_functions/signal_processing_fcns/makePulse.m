@@ -24,6 +24,7 @@ arguments
     options.SkipFilePicker = 1 % if false, opens file picker for placing each saved file
     options.OpenSaveDirectory = 0 % if true, opens save directory after saving on Windows machines.
     
+    options.SkipFiltering = 0
     options.SkipPulseChoiceDialog = 0 % if false, asks whether you want to save Gaussian, filtered gaussian, or truncated filtered gauss pulse.
     
     options.SaveFig = 1 % toggles saving of fig file
