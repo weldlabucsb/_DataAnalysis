@@ -90,6 +90,8 @@ disp(['There are a total of ' num2str(N_to_check) ' fits to check. Starting...']
 
 for ii = 1:N
     
+    skipFlag = 0;
+    
     % how many shots in each run
     Ncurves = length(avgRDs{ii});
     
@@ -131,7 +133,7 @@ for ii = 1:N
                     if ~skipFlag
                         [good_fit_tags{ii}(j), give_up] = yes_no_choice(options);
                     else 
-                        good_fit_tags{ii}(j) = 1;
+                        good_fit_tags{ii}(j:end) = 1;
                         give_up = 1;
                     end
 
@@ -163,8 +165,16 @@ for ii = 1:N
                    
                 end
             end
+            
+            if skipFlag
+                break;
+            end
+            
         end
         
+        if skipFlag
+            break;
+        end
     end
 end
 
