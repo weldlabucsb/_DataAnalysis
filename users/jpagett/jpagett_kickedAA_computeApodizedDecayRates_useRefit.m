@@ -14,16 +14,21 @@ for ii = 1:N
     
     disp(num2str(ii))
     
+    thesevals = [avgRDs{ii}.gaussAtomNumber_y];
+    zeroIdx = find(thesevals == 0);
+    good_fit_flags{ii}( (zeroIdx+1):end ) = 0;
+    
     excl_idx = 1:length(avgRDs{ii});
     excl_idx = excl_idx(~good_fit_flags{ii});
-    excl_idx(end + 1) = 1;
-    excl_idx(end + 1) = 2;
+    
+%     excl_idx(end + 1) = 1;
+%     excl_idx(end + 1) = 2;
 %     excl_idx = unique(excl_idx);
    
 %     try
         fitResult{ii} = kickedAA_decayFit_avgRDs(avgRDs{ii},...
             'ExcludedIndices',excl_idx,...
-            'PlotVariable','bkgdRemovedAtomNumber_y');
+            'PlotVariable','gaussAtomNumber_y');
         thisConfInt = confint(fitResult{ii}.fit);
         yneg(ii) = abs(fitResult{ii}.fit.b - thisConfInt(1));
         ypos(ii) = abs(thisConfInt(2) - fitResult{ii}.fit.b);

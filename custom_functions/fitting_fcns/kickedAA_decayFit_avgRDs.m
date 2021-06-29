@@ -16,11 +16,15 @@ function  [decayFitResult, figure_handle] = kickedAA_decayFit_avgRDs(avgRD,optio
 %     [avgRD, t] = avgRepeats(RunData,'LatticeHold',fns);
     
 %     t = t/1e3;
+
+    t = [avgRD.LatticeHold];
     tt = 0:10:1800;
     
     decayFitResult.T_us = unique([avgRD.T]);
     decayFitResult.tau_us = unique([avgRD.tau]);
     decayFitResult.PulseType = unique([avgRD.PulseType]);
+    
+    pt = decayFitResult.PulseType;
     
     %%
     
@@ -91,14 +95,16 @@ function  [decayFitResult, figure_handle] = kickedAA_decayFit_avgRDs(avgRD,optio
         yLim = ylim;
 %         maxy = 1e5;
 %         maxy = 50e-6;
-        maxy = 1e5;
+%         maxy = 1e5;
         
-        if yLim(2) > maxy
-            yLim(2) = maxy;
-            ylim(yLim);
-        end
+%         if yLim(2) > maxy
+%             yLim(2) = maxy;
+%             ylim(yLim);
+%         end
+        xlim([0,max(t)]);
+         ylim([0, 5e4])
         
-        pt = RunData.ncVars.PulseType;
+%         pt = RunData.ncVars.PulseType;
         switch pt
         case {'S','s'}
             pulsetype = "Square";
@@ -108,9 +114,9 @@ function  [decayFitResult, figure_handle] = kickedAA_decayFit_avgRDs(avgRD,optio
             pulsetype = "Filtered";
         end
         
-        ptitle = plotTitle(RunData,plotvar,'LatticeHold',{'T','tau'});
-        ptitle{2} = strcat( ptitle{2}, ", PulseType - ", pulsetype);
-        title(ptitle);
+%         ptitle = plotTitle(RunData,plotvar,'LatticeHold',{'T','tau'});
+%         ptitle{2} = strcat( ptitle{2}, ", PulseType - ", pulsetype);
+%         title(ptitle);
     end
     
 end
