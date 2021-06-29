@@ -273,15 +273,15 @@ function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(th
             hold on;
             plot( xvector, Y2(xvector) );
             
-            legend(['Y1','Y2']);
+            legend(["Y1" "Y2"]);
             
-            ans = questdialog('Which is central population?',...
+            choice = questdlg('Which is central population?',...
                 'Y1',...
                 'Y2',...
                 'Bad Fit',...
                 'Y1');
             
-            switch ans
+            switch choice
                 case 'Y1'
                     refit_fit_object = Y1;
                     sigma = Y1.sigma1;
