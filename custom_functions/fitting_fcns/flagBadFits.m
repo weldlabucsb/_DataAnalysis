@@ -118,7 +118,7 @@ for ii = 1:N
                 try
                     
                     %%%%%%%%%% REFIT %%%%%%%%%%
-                    [refit_vector, refit_param, refit_fit_object, fit_roi_rect] = ...
+                    [refit_vector, refit_param, skipFlag] = ...
                         refit(avgRDs{ii}(j),fitted_data_varname,xvector{ii}{j},options);
                     
                     tempRD.(fit_object_varname) = refit_vector;
@@ -127,8 +127,13 @@ for ii = 1:N
 %                     tempRD.refitFit = refit_fit_object;
 
                     plotFit(tempRD,this_run_plottitle,options,ii,j,N,Ncurves);
-
-                    [good_fit_tags{ii}(j), give_up] = yes_no_choice(options);
+                    
+                    if ~skipFlag
+                        [good_fit_tags{ii}(j), give_up] = yes_no_choice(options);
+                    else 
+                        good_fit_tags{ii}(j) = 1;
+                        give_up = 1;
+                    end
 
                     if good_fit_tags{ii}(j)
                         avgRDs{ii}(j) = tempRD;
@@ -257,7 +262,7 @@ function [choice, give_up] = yes_no_choice(options)
 end
 
 % function updated_fit_vector = refit(this_avgRD,fitted_data_varname,fit_object_varname,xvector)
-function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(this_avgRD,fitted_data_varname,xvector,options)
+function [refit_vector, refit_param, skipFlag]  = refit(this_avgRD,fitted_data_varname,xvector,options)
 
     ydata = this_avgRD.(fitted_data_varname);
     xdata = xvector;
@@ -299,15 +304,18 @@ function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(th
                     refit_fit_object = Y1;
                     sigma = Y1.sigma1 * 1e-6;
                     amp = Y1.A1;
+                    skipFlag = 0;
                 case 'Y2'
                     refit_fit_object = Y2;
                     sigma = Y2.sigma2 * 1e-6;
                     amp = Y2.A2;
+                    skipFlag = 0;
                 case 'Local Pop = 0'
                     refit_fit_object = [];
                     sigma = 0;
                     amp = 0;
-                    warning('Both fits bad.');
+                    disp('Local pop = 0.');
+                    skipFlag = 1;
             end
              
             % compute gaussAtomNumber_y from fit
