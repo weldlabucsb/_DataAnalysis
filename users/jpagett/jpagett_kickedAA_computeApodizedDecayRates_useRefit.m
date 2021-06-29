@@ -1,6 +1,7 @@
 %%
 
 % load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\KickedAA_pulseCompare\kickedaa_decay_rates_compare_samples\data\2021-06-21 data\2021-06-21_refitted_pulseCompare_data.mat");
+
 %%
 
 avgRDs = refitData.avgRDs;
@@ -30,11 +31,11 @@ for ii = 1:N
             'ExcludedIndices',excl_idx,...
             'PlotVariable','gaussAtomNumber_y');
         thisConfInt = confint(fitResult{ii}.fit);
-        yneg(ii) = abs(fitResult{ii}.fit.b - thisConfInt(1));
-        ypos(ii) = abs(thisConfInt(2) - fitResult{ii}.fit.b);
+        yneg(ii) = abs(fitResult{ii}.fit.b - thisConfInt(1,2));
+        ypos(ii) = abs(thisConfInt(2,2) - fitResult{ii}.fit.b);
         title(strcat("Fit Exponent: ", num2str(fitResult{ii}.decayRate * 1e3)));
 %         pause(0.25);
-        keyboard;
+%         keyboard;
 %     catch
 %         fitResult{ii}.decayRate = 100;
 %         yneg(ii) = 0;
@@ -92,38 +93,37 @@ for ii = 1:N
     switch fitResult{ii}.PulseType
         case {'G','g'}
             marker = 'o';
-            markerSize = 38;
+            markerSize = 45;
             color = colors(1,:);
+            ploterr = 1;
         case {'S','s'}
             marker = 's';
-            markerSize = 60;
+            markerSize = 70;
             color = colors(2,:);
+            ploterr = 1;
         case {'F','f'}
             marker = '^';
-            markerSize = 32;
+            markerSize = 40;
             color = colors(3,:);
-    end
-    
-    if fitResult{ii}.decayRate == 100 || flags(ii)
-        flags(ii) = 1;
-        color = [1 0 0];
-        fitResult{ii}.decayRate = - 0.1;
-%         disp("hi");
+%             ploterr = 0;
+            ploterr = 1;
     end
     
     scatter( fitResult{ii}.idx, -fitResult{ii}.decayRate * 1e3,...
-        markerSize, color, marker);
+        markerSize, color, marker, 'LineWidth', 1.5);
     hold on;
     
-%     p = errorbar(fitResult{ii}.idx, -fitResult{ii}.decayRate * 1e3,...
-%             yneg(ii) * 1e3, ypos(ii) * 1e3, ...
-%             marker, 'Color', color,...
-%             'CapSize',0,...
-%             'MarkerFaceColor','none',...
-%             'MarkerEdgeColor','none',...
-%             'HandleVisibility', 'off');
-%         p.LineWidth = 1;
-%         p.MarkerSize = markerSize;
+    if ploterr
+        p = errorbar(fitResult{ii}.idx, -fitResult{ii}.decayRate * 1e3,...
+                yneg(ii) * 1e3 , ypos(ii) * 1e3, ...
+                marker, 'Color', color,...
+                'CapSize',0,...
+                'MarkerFaceColor','none',...
+                'MarkerEdgeColor','none',...
+                'HandleVisibility', 'off');
+            p.LineWidth = 1.5;
+            p.MarkerSize = markerSize;
+    end
     
 end
 hold off;
@@ -131,8 +131,9 @@ hold off;
 xlim([0,7])
 set(gca,'yscale','log')
 
-% ylim([1e-15, 1e3])
-ylim([1e-3,1e2])
+ylim([10^(-2.5), 1e2])
+% ylim([1e-3,1e2])
+% ylim([-0.1,20])
 
 ax = gca;
 ax.XTick = tickpos;
@@ -140,6 +141,6 @@ ax.XTickLabel = labels;
 
 ylabel('Decay Rate (s^{-1})');
 
-legend('Square','Gaussian','Filtered','Location','southeast');
+legend('Square','Gaussian','Filtered','Location','northwest');
 
 set(h,'Position',[-929, 1048, 329, 300]);
