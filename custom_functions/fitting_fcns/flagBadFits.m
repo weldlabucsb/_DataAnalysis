@@ -66,7 +66,7 @@ N = length(RunDatas);
 
 % here in case I break something with this
 % fns = {'summedODy','(fit_object_varname)','OD','cloudSD_y'};
-fns = {fitted_data_varname,fit_object_varname,fit_param_varname,'OD'};
+fns = {fitted_data_varname,fit_object_varname,fit_param_varname,'OD','atomNumber'};
 
 
 N_to_check = 0; %init
@@ -75,6 +75,12 @@ for ii = 1:length(good_fit_tags)
     
     % independent variable = t
     [avgRDs{ii}, t{ii}] = avgRepeats(RunDatas{ii},varied_var,fns);
+    
+    for j = 1:length(avgRDs{ii})
+        avgRDs{ii}(j).T = RunDatas{ii}.ncVars.T;
+        avgRDs{ii}(j).tau = RunDatas{ii}.ncVars.tau;
+        avgRDs{ii}(j).PulseType = RunDatas{ii}.ncVars.PulseType;
+    end
     
     % add as many elements to list as number of runs
    good_fit_tags{ii} = zeros( size(avgRDs{ii}) ); 

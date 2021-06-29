@@ -1,26 +1,27 @@
 %%
 
-load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\KickedAA_pulseCompare\kickedaa_decay_rates_compare_samples\data\2021-06-21 data\2021-06-21_refitted_pulseCompare_data.mat");
+% load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\KickedAA_pulseCompare\kickedaa_decay_rates_compare_samples\data\2021-06-21 data\2021-06-21_refitted_pulseCompare_data.mat");
+%%
+
+avgRDs = refitData.avgRDs;
+good_fit_flags = refitData.good_fit_tags;
 
 %%
 N = length(avgRDs);
 
 % for ii = 1:N
-for ii = 9:N
+for ii = 1:N
     
     disp(num2str(ii))
-%     excl_idx = [1:2];
-    excl_idx = [];
     
-%     good_fit_tags = flagBadODyFits(RunDatas{ii},'LatticeHold');
-%     excl_idx = 1:7;
-%     excl_idx = excl_idx(~good_fit_flags{ii});
-%     excl_idx(end + 1) = 1;
-%     excl_idx(end + 1) = 2;
+    excl_idx = 1:length(avgRDs{ii});
+    excl_idx = excl_idx(~good_fit_flags{ii});
+    excl_idx(end + 1) = 1;
+    excl_idx(end + 1) = 2;
 %     excl_idx = unique(excl_idx);
    
-    try
-        fitResult{ii} = kickedAA_decayFit(RunDatas{ii},...
+%     try
+        fitResult{ii} = kickedAA_decayFit_avgRDs(avgRDs{ii},...
             'ExcludedIndices',excl_idx,...
             'PlotVariable','bkgdRemovedAtomNumber_y');
         thisConfInt = confint(fitResult{ii}.fit);
@@ -28,14 +29,14 @@ for ii = 9:N
         ypos(ii) = abs(thisConfInt(2) - fitResult{ii}.fit.b);
 %         pause(0.25);
     keyboard;
-    catch
-        fitResult{ii}.decayRate = 100;
-        yneg(ii) = 0;
-        ypos(ii) = 0;
-        fitResult{ii}.T_us = RunDatas{ii}.ncVars.T;
-        fitResult{ii}.tau_us = RunDatas{ii}.ncVars.tau;
-        fitResult{ii}.PulseType = RunDatas{ii}.ncVars.PulseType;
-    end
+%     catch
+%         fitResult{ii}.decayRate = 100;
+%         yneg(ii) = 0;
+%         ypos(ii) = 0;
+% %         fitResult{ii}.T_us = RunDatas{ii}.ncVars.T;
+% %         fitResult{ii}.tau_us = RunDatas{ii}.ncVars.tau;
+% %         fitResult{ii}.PulseType = RunDatas{ii}.ncVars.PulseType;
+%     end
     
     if mod(ii,5) == 0
         disp(['Done with ' num2str(ii) '/' num2str(N)]);
