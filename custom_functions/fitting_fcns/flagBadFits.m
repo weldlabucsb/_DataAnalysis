@@ -12,7 +12,7 @@ arguments
    varied_var = 'LatticeHold'
 end
 arguments
-    options.Position = [1469, 390, 765, 420];
+    options.Position = [920, 449, 892, 679];
     
     options.RunVars = struct()
     options.ManualHeldVars = {'T','tau'}
@@ -272,12 +272,13 @@ function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(th
             refit_vector = Y;
             
             cfig = gcf;
-            figure(450);
+            tfig = figure(450);
+            set(tfig,'Position',options.Position);
             plot( xvector, Y1(xvector) );
-            g1 = sqrt(2*pi)*Y1.sigma1*Y1.A1/(pixelsize/mag); 
+            g1 = sqrt(2*pi)*Y1.sigma1*Y1.A1/(pixelsize/mag) * 1e-6; 
             hold on;
             plot( xvector, Y2(xvector) );
-            g2 = sqrt(2*pi)*Y2.sigma2*Y2.A2/(pixelsize/mag); 
+            g2 = sqrt(2*pi)*Y2.sigma2*Y2.A2/(pixelsize/mag) * 1e-6; 
             hold off;
             legend([...
                 strcat("Y1: ", num2str(g1,options.FitParameterPrecision));...
@@ -288,19 +289,21 @@ function [refit_vector, refit_param, refit_fit_object, fit_roi_rect]  = refit(th
                 'Check the fits...',...
                 'Y1',...
                 'Y2',...
-                'Bad Fit',...
+                'Local Pop = 0',...
                 'Y1');
+            
+            close(tfig);
             
             switch choice
                 case 'Y1'
                     refit_fit_object = Y1;
-                    sigma = Y1.sigma1;
+                    sigma = Y1.sigma1 * 1e-6;
                     amp = Y1.A1;
                 case 'Y2'
                     refit_fit_object = Y2;
-                    sigma = Y2.sigma2;
+                    sigma = Y2.sigma2 * 1e-6;
                     amp = Y2.A2;
-                case 'Bad Fit'
+                case 'Local Pop = 0'
                     sigma = 0;
                     amp = 0;
                     warning('Both fits bad.');
