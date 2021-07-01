@@ -1,4 +1,11 @@
-function [groundToNthBand_Tus, groundToNthBand_kHz, firstExcitedtoHigherBands_Tus] = bandcalc(s1)
+function [groundToNthBand_Tus, groundToNthBand_kHz, firstExcitedtoHigherBands_Tus] = bandcalc(s1,options)
+
+arguments
+    s1
+end
+arguments
+    options.PlotBand = 0
+end
 
 wavelength = 1064 * 10^(-9); % m
 m_Sr84 = 1.3934152 * 10^(-25); % kg
@@ -41,17 +48,19 @@ for q = 1:k_res
     Energies(:,q) = eig( H(:,:,q) );
 end
 
-% clf
-% fig = figure(1);
-% 
-% hold on
-% for m = 1:bands
-%     plot(k,Energies(m,:));
-% end
-% hold off
+if options.BandPlot
+    clf
+    fig = figure(10);
+    
+    hold on
+    for m = 1:bands
+        plot(k,Energies(m,:));
+    end
+    hold off
 
-% Title = strcat("Band Structure: Lattice Depth = ",num2str(V_latt)," Er");
-% title(Title);
+    Title = strcat("Band Structure: Lattice Depth = ",num2str(V_latt)," Er");
+    title(Title);
+end
 
 format long
 

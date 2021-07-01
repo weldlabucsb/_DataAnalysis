@@ -21,29 +21,16 @@ for ii = 1:N
     
     excl_idx = 1:length(avgRDs{ii});
     excl_idx = excl_idx(~good_fit_flags{ii});
-    
-%     excl_idx(end + 1) = 1;
-%     excl_idx(end + 1) = 2;
-%     excl_idx = unique(excl_idx);
    
-%     try
-        fitResult{ii} = kickedAA_decayFit_avgRDs(avgRDs{ii},...
-            'ExcludedIndices',excl_idx,...
-            'PlotVariable','gaussAtomNumber_y');
-        thisConfInt = confint(fitResult{ii}.fit);
-        yneg(ii) = abs(fitResult{ii}.fit.b - thisConfInt(1,2));
-        ypos(ii) = abs(thisConfInt(2,2) - fitResult{ii}.fit.b);
-        title(strcat("Fit Exponent: ", num2str(fitResult{ii}.decayRate * 1e3)));
-%         pause(0.25);
-%         keyboard;
-%     catch
-%         fitResult{ii}.decayRate = 100;
-%         yneg(ii) = 0;
-%         ypos(ii) = 0;
-% %         fitResult{ii}.T_us = RunDatas{ii}.ncVars.T;
-% %         fitResult{ii}.tau_us = RunDatas{ii}.ncVars.tau;
-% %         fitResult{ii}.PulseType = RunDatas{ii}.ncVars.PulseType;
-%     end
+    fitResult{ii} = kickedAA_decayFit_avgRDs(avgRDs{ii},...
+        'ExcludedIndices',excl_idx,...
+        'PlotVariable','gaussAtomNumber_y');
+    thisConfInt = confint(fitResult{ii}.fit);
+    yneg(ii) = abs(fitResult{ii}.fit.b - thisConfInt(1,2));
+    ypos(ii) = abs(thisConfInt(2,2) - fitResult{ii}.fit.b);
+    title(strcat("Fit Exponent: ", num2str(fitResult{ii}.decayRate * 1e3)));
+    
+    keyboard;
     
     if mod(ii,5) == 0
         disp(['Done with ' num2str(ii) '/' num2str(N)]);
@@ -109,9 +96,11 @@ for ii = 1:N
             ploterr = 1;
     end
     
-    scatter( fitResult{ii}.idx, -fitResult{ii}.decayRate * 1e3,...
-        markerSize, color, marker, 'LineWidth', 1.5);
-    hold on;
+    if fitResult{ii}.idx ~= 4
+        scatter( fitResult{ii}.idx, -fitResult{ii}.decayRate * 1e3,...
+            markerSize, color, marker, 'LineWidth', 1.5);
+        hold on;
+    end
     
     if ploterr
         p = errorbar(fitResult{ii}.idx, -fitResult{ii}.decayRate * 1e3,...
@@ -129,9 +118,9 @@ end
 hold off;
 
 xlim([0,7])
-set(gca,'yscale','log')
+% set(gca,'yscale','log')
 
-ylim([10^(-2.5), 1e2])
+% ylim([10^(-2.5), 1e2])
 % ylim([1e-3,1e2])
 % ylim([-0.1,20])
 
