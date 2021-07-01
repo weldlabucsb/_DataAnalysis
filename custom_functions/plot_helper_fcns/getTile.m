@@ -1,4 +1,9 @@
-function thisTile = getTile(fig_handle,tile_number)
+function thisTile = getTile(tile_number,fig_handle)
+    arguments
+        tile_number % specified from top
+        fig_handle = gcf
+    end
+    
     h = fig_handle;
     
     tileLayout = get(h,'Children');
