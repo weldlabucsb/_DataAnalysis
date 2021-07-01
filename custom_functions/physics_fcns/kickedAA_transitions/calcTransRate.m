@@ -9,7 +9,7 @@ end
     initBand = 1; %ground band = 1
 
     depth1 = 10; %1064 depth
-    depth2 = 10; %915 depth
+    depth2 = 1; %915 depth
 
     lambda1 = 1064;
     lambda2 = 915;
@@ -42,7 +42,7 @@ end
     %%now we have to find the rate where the relevant transition is
     
     
-    if(1)
+    if 0
         figure(1);
         pl = plot(finalQuasi,matrixElem);
         %makes sense, driving quasimomentum difference of 915 lattice
@@ -53,7 +53,7 @@ end
         xlabel('Quasimomentum');
         legend('','\pm(\beta - 2)');
         set(gca,'fontsize',13);
-                figure(2);
+            figure(2);
         pl = plot(finalQuasi,density);
         %makes sense, driving quasimomentum difference of 915 lattice
         xline(2-beta);
