@@ -1,7 +1,8 @@
 function [] = pColorCenteredNonGrid(parentAx,xData,yData,valueData,xTol,yTol)
 
     xMin = -0.0001;
-    xMax = max(xData,[],'all');
+%     xMax = 0.07;
+    xMax = max(xData);
 
 
     uniqY = unique(yData);
@@ -27,11 +28,9 @@ function [] = pColorCenteredNonGrid(parentAx,xData,yData,valueData,xTol,yTol)
         thisYData = yData(thisIndices);
         thisValueData = valueData(thisIndices);
 
-        pColorCenteredGrid(ax,thisXData,thisYData,thisValueData,thisVectBounds,thisXData,uniqY(ii),xTol,yTol)
+        pColorCenteredGrid(ax,thisXData,thisYData,thisValueData,thisVectBounds,thisXData,uniqY(ii),xTol,yTol);
 
     end
-
-%     scatter(ax,xData,yData,'MarkerEdgeColor','w');
 
     xlim(ax,[xMin,xMax])
     ylim(ax,[plotBoundaries(1),plotBoundaries(end)])
