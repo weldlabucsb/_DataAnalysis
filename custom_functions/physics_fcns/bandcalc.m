@@ -1,4 +1,4 @@
-function [groundToNthBand_Tus, groundToNthBand_kHz, firstExcitedtoHigherBands_Tus] = bandcalc(s1)
+function [groundToNthBand_Tus, groundToNthBand_kHz, firstExcitedtoHigherBands_Tus] = bandcalc(s1,options)
 
 arguments
     s1
