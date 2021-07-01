@@ -48,7 +48,7 @@ for q = 1:k_res
     Energies(:,q) = eig( H(:,:,q) );
 end
 
-if options.BandPlot
+if options.PlotBand
     clf
     fig = figure(10);
     
