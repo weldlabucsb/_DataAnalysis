@@ -13,6 +13,8 @@ m_Sr84 = 1.3934152 * 10^(-25); % kg
 hbar = 1.054 * 10^(-34); % J*s
 h = 2 * pi * hbar; 
 
+recoil_frequency_1064 = h/(2*m_Sr84*wavelength^2);
+
 bands = 5;
 
 max_l = 50;
@@ -54,8 +56,10 @@ if options.PlotBand
     
     hold on
     for m = 1:bands
-        plot(k,Energies(m,:));
+        plot(k,(Energies(m,:) - min(Energies(1,:)))*recoil_frequency_1064 /1e3);
     end
+    ylim([-5,60]);
+    
     hold off
 
     Title = strcat("Band Structure: Lattice Depth = ",num2str(V_latt)," Er");
@@ -68,7 +72,7 @@ format long
 
 % J_915 = J_1064 * ( 915 / 1064 )^2
 
-recoil_frequency_1064 = h/(2*m_Sr84*wavelength^2);
+
 % J_Frequency = recoil_frequency_1064 * J_1064
 
 for ii = 2:bands
