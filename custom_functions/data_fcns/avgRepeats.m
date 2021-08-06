@@ -9,7 +9,7 @@ function [avg_atomdata, varied_var_values]  = avgRepeats(RunDatas, varied_variab
 % variables that you want and generate a complete repeat-averaged atomdata
 
     arguments
-        RunDatas
+        RunDatas23
         varied_variable_name string
         vars_to_be_avgd
     end
