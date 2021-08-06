@@ -1,10 +1,12 @@
-function [groundToNthBand_Tus, groundToNthBand_kHz, firstExcitedtoHigherBands_Tus] = bandcalc(s1,options)
+function [groundToNthBand_Tus, groundToNthBand_kHz, firstExcitedtoHigherBands_Tus, Energies, k] = bandcalc(s1,options)
 
 arguments
     s1
 end
 arguments
     options.PlotBand = 0
+    options.PlotInKHz = 0
+    options.GroundStateEnergyZero = 0
 end
 
 wavelength = 1064 * 10^(-9); % m
@@ -15,9 +17,9 @@ h = 2 * pi * hbar;
 
 recoil_frequency_1064 = h/(2*m_Sr84*wavelength^2);
 
-bands = 5;
+bands = 100;
 
-max_l = 50;
+max_l = 100;
 dim = 2 * max_l + 1; % to get values from -max_l to max_l
 
 V_latt = s1;
@@ -34,7 +36,7 @@ for ii = 1:dim
         
         % diagonal elements
         if ii == jj
-            H(ii,jj,:) = (2*(ii - (max_l + 1)) + k ).^2; % in units of lattice recoils of primary lattice
+            H(ii,jj,:) = (2*(ii - (max_l - 1)) + k ).^2; % in units of lattice recoils of primary lattice
         end
         
         % off-diagonal elements
@@ -51,18 +53,32 @@ for q = 1:k_res
 end
 
 if options.PlotBand
-    clf
-    fig = figure(10);
+%     clf;
+    fig = figure(9265);
+    
+    if options.PlotInKHz
+        conversion = recoil_frequency_1064 / 1e3;
+    else
+        conversion = 1;
+    end
+    
+    if options.GroundStateEnergyZero
+        offset = min(Energies(1,:));
+    else
+        offset = 0;
+    end
     
     hold on
     for m = 1:bands
-        plot(k,(Energies(m,:) - min(Energies(1,:)))*recoil_frequency_1064 /1e3);
+        plot(k,(Energies(m,:) - offset) * conversion);
     end
-    ylim([-5,60]);
+    ylim([-5,30]);
     
     hold off
 
     Title = strcat("Band Structure: Lattice Depth = ",num2str(V_latt)," Er");
+    ylabel('Energy (E_r)');
+    xlabel('Quasimomentum');
     title(Title);
 end
 
