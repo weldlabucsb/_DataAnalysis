@@ -77,14 +77,6 @@ varargin = {RunVars.heldvars_all};
     Widthsvec = zeros(0);
     for j = 1:length(RunDatas)
         
-        % Here I compute each fracWidth from the repeat-averaged densities
-        % for the iith entry in each RunData, which are stored in
-        % avg_atomdata{j}(ii).summedODy
-        [~,~,pixelsize,mag] = paramsfnc('ANDOR');
-        xConvert = pixelsize/mag * 1e6; % convert from pixel to um
-        
-        X{j} = ( 1:size( avg_atomdata{j}(1).summedODy, 2 ) ) * xConvert;
-        
         
         PrimaryLatticeDepthVar = 'VVA1064_Er'; %Units of Er of the primary lattice
         atomdata = RunDatas{j}.Atomdata;
@@ -92,26 +84,6 @@ varargin = {RunVars.heldvars_all};
             %do delta and J calculations
             s1 = atomdata(ii).vars.(PrimaryLatticeDepthVar);
             
-            
-%             if(isfield(atomdata(ii).vars,'ErPerVolt915'))
-% %                 disp('ErPerVolt915 Exists!')
-%                 secondaryErPerVolt = atomdata(ii).vars.ErPerVolt915;  % Calibration from KD for the secondary lattice 
-%             else
-% %                 disp('ErPerVolt915 Doesn''t exist')
-%                 %got from KD on 1/5
-%                 secondaryErPerVolt = 22.34;
-%             end
-
-
-            
-%             secondaryErPerVolt = 22.313; %for 1/16 Data
-%             secondaryErPerVolt = 12.54; %for 2/27 Data
-            
-            %for 6/8 Data
-            secondaryErPerVolt = 13.60;
-            
-            
-            secondaryPDGain = 1; 
 
             maxs2 = vva_to_voltage(V0s,vvas,atomdata(ii).vars.Lattice915VVA)*secondaryErPerVolt/secondaryPDGain;
             la1 = 1064;
@@ -164,18 +136,6 @@ varargin = {RunVars.heldvars_all};
             if (fracWidths{j}(ii)  > 35)
                 fracWidths{j}(ii) = NaN;
             end
-              
-%               fracWidths{j}(ii) = avg_atomdata{j}(ii).cloudSD_y;
-              
-              %%%Various conditions to eliminate bad runs
-              
-%               if (fracWidths{j}(ii) > 6E-5)
-%                   fracWidths{j}(ii) = NaN;
-%               end
-
-%                 if(avg_atomdata{j}(ii).atomNumber < 1E4)
-%                     fracWidths{j}(ii) = NaN;
-%                 end
               
             
         end

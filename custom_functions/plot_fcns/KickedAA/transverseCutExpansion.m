@@ -1,4 +1,4 @@
-function [fig_handle, fig_filename] = widthExpansionPlot(RunDatas,RunVars,options)
+function [fig_handle, fig_filename] = widthExpansionGaussian(RunDatas,RunVars,options)
 % PLOTFUNCTIONTEMPLATE makes a plot from the given RunDatas against the
 % dependent variable {varied_variable_name}. Optional arguments are passed
 % to setupPlot, which automatically puts axes and a legend on the plot,
@@ -12,9 +12,9 @@ arguments
     %RunVars is an optional argument. The default values are below, and
     %shouldn't need to be changed. The function can be called without it
 %     RunVars
-    RunVars = struct('varied_var',{{'Lattice915VVA'}},...
-        'heldvars_each',{{'Lattice915VVA'}},...
-        'heldvars_all',{{'VVA1064_Er','T','tau'}});
+    RunVars = struct('varied_var',{{'LatticeHold'}},...
+        'heldvars_each',{{'Lattice915VVA','KickPeriodms'}},...
+        'heldvars_all',{{'VVA1064_Er'}});
 end
 arguments
     %options 
@@ -63,30 +63,26 @@ varargin = {RunVars.heldvars_all};
 
     close all;
     
-    cmap = colormap( jet( size(avg_atomdata{1}, 2) ) );
+    cmap = colormap( jet( length(avg_atomdata) ) );
 
     
    
+    %%import the relevant KD parameters
+    [V0s,vvas,secondaryErPerVolt] = KDimport('V:\StrontiumData\2021\2021.06\06.18\16 - 915 kd with correct scope setting\','atomdata.mat');
+    secondaryPDGain = 1; 
+    
+    
     cutoff = 0.1;
     frac = 0.75;
-    lambdas = zeros(0);
+%     lambdas = zeros(0);
     Ts = zeros(0);
-    IPRvec = zeros(0);
-    widthsMatrix = zeros(length(RunDatas),size(avg_atomdata{j}, 2));
-    lattHoldMatrix = zeros(length(RunDatas),size(avg_atomdata{j}, 2));
-    lat915Matrix = zeros(length(RunDatas),size(avg_atomdata{j}, 2));
-    lambdaMatrix = zeros(length(RunDatas),size(avg_atomdata{j}, 2));
-    TsMatrix = zeros(length(RunDatas),size(avg_atomdata{j}, 2));
+%     IPRvec = zeros(0);
+    widthsMatrix = zeros(size(avg_atomdata{j}, 2),length(RunDatas));
+    lattHoldMatrix = zeros(size(avg_atomdata{j}, 2),length(RunDatas));
+    lambdaMatrix = zeros(size(avg_atomdata{j}, 2),length(RunDatas));
+    TsMatrix = zeros(size(avg_atomdata{j}, 2),length(RunDatas));
     diffusion_fits = zeros(length(RunDatas),2);
     for j = 1:length(RunDatas)
-        
-        % Here I compute each fracWidth from the repeat-averaged densities
-        % for the iith entry in each RunData, which are stored in
-        % avg_atomdata{j}(ii).summedODy
-        [~,~,pixelsize,mag] = paramsfnc('ANDOR');
-        xConvert = pixelsize/mag * 1e6; % convert from pixel to um
-        
-        X{j} = ( 1:size( avg_atomdata{j}(1).summedODy, 2 ) ) * xConvert;
         
         
         PrimaryLatticeDepthVar = 'VVA1064_Er'; %Units of Er of the primary lattice
@@ -95,82 +91,45 @@ varargin = {RunVars.heldvars_all};
             %do delta and J calculations
             s1 = atomdata(ii).vars.(PrimaryLatticeDepthVar);
             
-            
-%             if(isfield(atomdata(ii).vars,'ErPerVolt915'))
-% %                 disp('ErPerVolt915 Exists!')
-%                 secondaryErPerVolt = atomdata(ii).vars.ErPerVolt915;  % Calibration from KD for the secondary lattice 
-%             else
-% %                 disp('ErPerVolt915 Doesn''t exist')
-%                 %got from KD on 1/5
-%                 secondaryErPerVolt = 22.34;
-%             end
 
-
-            %for 1/16 Data
-%             secondaryErPerVolt = 22.313;
-            
-            %for 2/27 Data
-            secondaryErPerVolt = 12.54;
-
-            secondaryPDGain = 1; 
-            
-            %%%DONT USE (unless fit is good)
-% % % % % %             if(isfield(atomdata(ii).vars,'Scope_CH2_V0'))
-% % % % % % %                 disp('scope variable exists')
-% % % % % %                 secondaryPDPulseAmp = atomdata(ii).vars.('Scope_CH2_V0');
-% % % % % %                 s2 = secondaryPDPulseAmp*secondaryErPerVolt/secondaryPDGain;
-% % % % % %             else
-% % % % % %                 s2 = vva_to_voltage(atomdata(ii).vars.Lattice915VVA)*secondaryErPerVolt/secondaryPDGain;
-% % % % % % %                 s2 = secondaryErPerVolt*vva_to_voltage(atomdata(ii).vars.Lattice915VVA);
-% % % % % %             end
-
-            s2 = vva_to_voltage(atomdata(ii).vars.Lattice915VVA)*secondaryErPerVolt/secondaryPDGain;
+            maxs2 = vva_to_voltage(V0s,vvas,atomdata(ii).vars.Lattice915VVA)*secondaryErPerVolt/secondaryPDGain;
             la1 = 1064;
             la2 = 915;
             
-            [J, Delta]  = J_Delta_PiecewiseFit(s1,s2);
+            %%need to calculate Delta as a function of time
             
-            hbar_Er1064 = 7.578e-5; %Units of Er*seconds
+            [J, Delta]  = J_Delta_PiecewiseFit(s1,maxs2);
+            
+            [lambdaInt] = calc_lambda_gaussian(s1,maxs2,300);
+            disp('Be careful, using default tau');
+            
             hbar_Er1064_us = 75.78; %hbar in units of Er*microseconds
             
-            tau_us = RunDatas{j}.ncVars.tau;
-            tau = tau_us*J/hbar_Er1064_us;
+                T_us = RunDatas{j}.vars.KickPeriodms*1E3;
             
-            T_us = RunDatas{j}.ncVars.T;
-            lambdas(length(lambdas)+1)  = Delta*tau/J;
-            TsMatrix(j,ii) = T_us*J/hbar_Er1064_us;
-            Depths915{j}(ii) = s2;
-            max_ratio{j}(ii) = mean(abs(avg_atomdata{j}(ii).summedODy),'all')/max(abs(avg_atomdata{j}(ii).summedODy),[],'all');
-            [width, center] = fracWidth( X{j}, avg_atomdata{j}(ii).summedODy, frac,'PlotWidth',0);
-%             if max_ratio{j}(ii) > cutoff
-%                 fracWidths{j}(ii) = NaN;
-%             else
-%                 fracWidths{j}(ii) = avg_atomdata{j}(ii).cloudSD_y;
-%             end
             
-%             fracWidths{j}(ii) = width;
-            widthsMatrix(j,ii) = avg_atomdata{j}(ii).cloudSD_y;
-%             
-            if (widthsMatrix(j,ii)  > 6E-5)
-                widthsMatrix(j,ii) = NaN;
+            
+%             lambdas(length(lambdas)+1)  = lambdaInt/(hbar_Er1064_us);
+            TsMatrix(ii,j) = T_us*J/hbar_Er1064_us;
+
+            widthsMatrix(ii,j) = avg_atomdata{j}(ii).cloudSD_y;            
+            if (widthsMatrix(ii,j)  > 6E-5)
+                widthsMatrix(ii,j) = NaN;
             end
             
-            lattHoldMatrix(j,ii) = atomdata(ii).vars.LatticeHold;
-            lat915Matrix(j,ii) = s2;
-            lambdaMatrix(j,ii) = Delta*tau/J;
+            lattHoldMatrix(ii,j) = avg_atomdata{j}(ii).LatticeHold;
+%             lat915Matrix(j,ii) = s2;
+            lambdaMatrix(ii,j) = lambdaInt/(hbar_Er1064_us);
                       
         end
-%         fracWidths{j} = smoothdata(fracWidths{j},'movmean',2);
-%         fracWidthsvec = [fracWidthsvec fracWidths{j}];
-%           widthsMatrix(:,j) = smoothdata(widthsMatrix(:,j),'movmean',2);
           
     end
     
     %take the average initial width
     avg_initial_width = mean(widthsMatrix(1,:));
-    diffusion_exponent = zeros(length(RunDatas),1);
-    first_to_use = 4;
-    for j = 1:size(avg_atomdata{1}, 2)
+%     diffusion_exponent = zeros(length(RunDatas),1);
+    first_to_use = 3;
+    for j = 1:length(RunDatas)
                   %smoothdata a bit
 %           widthsMatrix(:,j) = smoothdata(widthsMatrix(:,j),'movmean',2);
           
@@ -187,11 +146,13 @@ varargin = {RunVars.heldvars_all};
     
     % Then plot things, just looping over the values I computed above.
     
+    
+    
     first_fig = figure(1);
 %     figure_title_dependent_var = ['width at ' num2str(frac) ' maximum (summedODy, au)'];
     figure_title_dependent_var = ['cloudSD_y'];
             hold on;
-    for j = 1:size(avg_atomdata{1}, 2)
+    for j = 1:size(widthsMatrix,2)
 %         if (
         plot(lattHoldMatrix(:,j), widthsMatrix(:,j),  'o-',...
             'LineWidth', options.LineWidth,...
@@ -199,17 +160,17 @@ varargin = {RunVars.heldvars_all};
 %         set(gca,'yscale','log');
 
     end
-        for j = 1:size(avg_atomdata{1},2)
+        for j = 1:size(widthsMatrix,2)
                 plot(lattHoldMatrix(first_to_use:end,j), exp(diffusion_fits(j,2)).*(lattHoldMatrix(first_to_use:end,j).^(diffusion_fits(j,1))),  '--',...
             'LineWidth', options.LineWidth,...
             'Color',cmap(j,:));
-    end
+        end
     hold off;
     
     sec_fig = figure(2);
 %     figure_title_dependent_var = ['width at ' num2str(frac) ' maximum (summedODy, au)'];
     figure_title_dependent_var = ['cloudSD_y'];
-    for j = 1:size(avg_atomdata{1}, 2)
+    for j = 1:size(widthsMatrix,2)
         plot(lattHoldMatrix(:,j), widthsMatrix(:,j),  'o-',...
             'LineWidth', options.LineWidth,...
             'Color',cmap(j,:));
@@ -219,36 +180,12 @@ varargin = {RunVars.heldvars_all};
     end
     hold off;
     
-    %for fitting the 1second lattice hold...
-    %I used this code to try and analyze the phason modulation data
-% % % % %     fifth_fig = figure(5);
-% % % % %     fifth_title_dep_var = ['915 Strength [E_{R}]'];
-% % % % %     s2 = vva_to_voltage(1)*secondaryErPerVolt/secondaryPDGain;
-% % % % %     special915Vec = [s2 lat915Matrix(8,:)];
-% % % % %     specialWidthsMatrix = [2.524797095256649e-05 widthsMatrix(8,:)];
-% % % % %     f = fit(special915Vec',specialWidthsMatrix','exp1','Exclude',specialWidthsMatrix>3E-5);
-% % % % %     hold on;
-% % % % %     plot(special915Vec,smooth(specialWidthsMatrix,3));
-% % % % %     plot(f,special915Vec,specialWidthsMatrix);
-% % % % %     hold off;
-% % % % %     keyboard;
-% % % % %         options.xLabel = '915 Strength [E_{R}]';
-% % % % %     options.yLabel = 'cloudSD_y';
-% % % % %     [plot_title, fig_filename] = ...
-% % % % %         setupPlotWrap( ...
-% % % % %             fifth_fig, ...
-% % % % %             options, ...
-% % % % %             RunDatas, ...
-% % % % %             figure_title_dependent_var, ...
-% % % % %             varied_variable_name, ...
-% % % % %             legendvars, ...
-% % % % %             varargin);
-% % % % %     keyboard;
+
     third_fig = figure(3);
 %     figure_title_dependent_var = ['width at ' num2str(frac) ' maximum (summedODy, au)'];
     figure_title_dependent_var = ['cloudSD_y'];
     hold on;
-    for j = 1:size(avg_atomdata{1}, 2)
+    for j = 1:size(widthsMatrix,2)
         plot(lattHoldMatrix(:,j), widthsMatrix(:,j),  'o-',...
             'LineWidth', options.LineWidth,...
             'Color',cmap(j,:));
@@ -257,7 +194,7 @@ varargin = {RunVars.heldvars_all};
         set(gca,'xscale','log');
         
     end
-    for j = 1:size(avg_atomdata{1},2)
+    for j = 1:size(widthsMatrix,2)
                 plot(lattHoldMatrix(first_to_use:end,j), exp(diffusion_fits(j,2)).*(lattHoldMatrix(first_to_use:end,j).^(diffusion_fits(j,1))),  '--',...
             'LineWidth', options.LineWidth,...
             'Color',cmap(j,:));
@@ -315,19 +252,68 @@ varargin = {RunVars.heldvars_all};
     plot(lambdaMatrix(1,:)./TsMatrix(1,:),diffusion_fits(:,1), 'o-',...
             'LineWidth', options.LineWidth);
         ylim([0,0.8]);
-        ylabel('Diffusion Param')
+        ylabel('Diffusion Exponent')
         yyaxis right;
-    plot(lambdaMatrix(6,:)./TsMatrix(6,:),0.7.*widthsMatrix(6,:)./widthsMatrix(6,1), 'o-',...
+    plot(lambdaMatrix(6,:)./TsMatrix(6,:),widthsMatrix(7,:).*1E6, 'o-',...
             'LineWidth', options.LineWidth);
         ylabel('Cloud SDy, \mu m');
-        ylim([0,0.8]);
+        ylim([0 40]);
         xline(2, 'r--',...
             'LineWidth', options.LineWidth);
-        xlabel('Lambda/T','interpreter','latex')
+        xlabel('\lambda/T','interpreter','Tex')
         hold off;
         legend({'Diffusion','SDy','$\lambda = 2T$'},'interpreter','latex');
     
+    tic
+    plotSacPhaseDiagram(1064/915,0,200,25,12);
+    toc
+    hold on;
+    scatter(lambdaMatrix(1,:),TsMatrix(1,:));
+    p = polyfit(lambdaMatrix(1,:),TsMatrix(1,:),1);
     
+    plot(lambdaMatrix(1,:),polyval(p,lambdaMatrix(1,:)));
+    lineDomain = linspace(min(lambdaMatrix(1,:)),max(lambdaMatrix(1,:)),100);
+    plot(lineDomain,lineDomain./2);
+    legend({'Samples','Fit','Transition'});
+    hold off;
+    
+    next_fig = figure(124);
+    hold on;
+    yyaxis left;
+    plot((lambdaMatrix(1,:)-6.017).*(1+p(1)^2)^(1/2),diffusion_fits(:,1), 'o-',...
+            'LineWidth', options.LineWidth);
+        ylim([0,0.8]);
+        ylabel('Diffusion Exponent')
+        yyaxis right;
+    plot((lambdaMatrix(1,:)-6.017).*(1+p(1)^2)^(1/2),widthsMatrix(7,:).*1E6, 'o-',...
+            'LineWidth', options.LineWidth);
+        ylabel('Cloud SDy, \mu m');
+        ylim([0 40]);
+        xline(0, 'r--',...
+            'LineWidth', options.LineWidth);
+        xlabel('Distance from Transition','interpreter','Tex')
+        hold off;
+        legend({'Diffusion','SDy','$\lambda = 2T$'},'interpreter','latex');
+    
+        
+        
+        [thisP1] = theoryExpLine(1064/915,0,1800,lambdaMatrix(1,:),TsMatrix(1,:));
+        [thisP2] = theoryExpLine(1064/915,pi/3,1800,lambdaMatrix(1,:),TsMatrix(1,:));
+        [thisP3] = theoryExpLine(1064/915,2*pi/3,1800,lambdaMatrix(1,:),TsMatrix(1,:));
+        thisP = (thisP1+thisP2+thisP3)./3;
+        moar_fig = figure(125);
+        hold on;
+    plot((lambdaMatrix(1,:)-6.017).*(1+p(1)^2)^(1/2),diffusion_fits(:,1), 'o-',...
+            'LineWidth', options.LineWidth);
+        ylim([0,0.8]);
+        ylabel('Diffusion Exponent');
+    
+    plot((lambdaMatrix(1,:)-6.017).*(1+p(1)^2)^(1/2),smooth(thisP(1,:),2));
+        xline(0, 'r--',...
+            'LineWidth', options.LineWidth);
+        xlabel('Distance from Transition','interpreter','Tex')
+        hold off;
+        legend({'Diffusion','IPR^{-1}','$\lambda = 2T$'},'interpreter','latex');
 %     
     
     
@@ -384,27 +370,135 @@ varargin = {RunVars.heldvars_all};
 %             legendvars, ...
 %             varargin);
         
-    function depth = vva_to_voltage(vva)
-        %take out the non-linearity
-        %for the 1/16 data
-% %         V0s = [0.016000,0.016000,0.0160000,0.0240000,0.0325363,0.053418,0.069453,0.088672,0.13093,0.17131,0.209423626,0.24634811,0.28175,0.2979424,0.3280,0.365530,0.38883,0.407439,0.43064,0.4452181,0.46755,0.49028,0.5083,0.516321,0.5290575,0.530246];
-% %         vvas = [0,1,1.5000000,1.6000,1.700,1.800,1.90000,2,2.2000,2.4000,2.60000,2.8000,3,3.100000,3.30000,3.600000,3.8000,4,4.2000,4.400000,4.700000,5,5.50000,6,7,8];
+    function depth = vva_to_voltage(V0s,vvas,vva)
+
+        depth = interp1(vvas,V0s,vva);
         
-        
-        %for the 2/27 data
-        V0s = [0.0297611340889169,0.0320000000016725,0.0360000000000222,0.0620546063258612,0.0719909967293660,0.100286258828503,0.132132920348285,0.160270640980708,0.194334313681227,0.216658564267728,0.230893463124005,0.254476729560220,0.267785474698420,0.284191264615461,0.300403320122237,0.316392760370631,0.335449780883353,0.341275399292686,0.355480424302642,0.370968685011421,0.386239458185895,0.393433865352977,0.408399987686944];
-        vvas = [1,1.80000000000000,1.90000000000000,2,2.10000000000000,2.20000000000000,2.40000000000000,2.60000000000000,2.80000000000000,3,3.10000000000000,3.30000000000000,3.40000000000000,3.60000000000000,3.80000000000000,4,4.20000000000000,4.40000000000000,4.70000000000000,5,5.50000000000000,6,7.50000000000000];
-        
-        %for 3/23 data
-%         V0s = [0,0.0736783508103853,0.0919325233215497,0.140775622496791,0.177681318284420,0.213707250228924,0.244105225971579,0.256827061740513,0.278925131974928,0.289462482914506,0.315246479230482,0.332958057066155,0.346744790852344,0.332958057066155,0.381614474966698,0.402993079662267,0.408784741151747,0.427199505248519,0.437485713621218,0.452582892831114];
-%         vvas = [1,2,2.10000000000000,2.40000000000000,2.60000000000000,2.80000000000000,3,3.10000000000000,3.30000000000000,3.40000000000000,3.60000000000000,3.80000000000000,4,4.20000000000000,4.40000000000000,4.70000000000000,5,5.50000000000000,6,7.50000000000000];
-        
-        
-        depth = interp1(vvas,V0s,vva);        
-        %how to get the vva and V0 values
-        %1. load the atomdata of the KD run. Doit must have been run
-        %V0s = [atomdata(:).V0];
+        %clear V0s; clear vvas; V0s = [atomdata(:).V0];
         %for ii = 1:length(atomdata) vvas(ii) = atomdata(ii).vars.Lattice915VVA; end
     end
+
+function[] = plotSacPhaseDiagram(beta,phi,sites,points,maxLambda)
+    posGrid = linspace(0,maxLambda,points);
+    [lambda,T] = meshgrid(posGrid,posGrid./2);
+
+    IPRs = zeros(size(lambda));%to store the IPRs at various points
+    tic
+    parfor jj = 1:numel(lambda)
+        %lattice and disorder operators
+        H0 = full(gallery('tridiag',sites,-1,0,-1));
+        H0(1,end) = -1; H0(end,1) = -1;
+        pot = diag(cos(2.*pi.*beta.*(1:sites)+phi));
+        %stob time evol operator
+        timeEvOp = expm(-1i.*H0.*T(jj))*expm(-1i.*lambda(jj).*pot);
+
+        [V,D] = eig(timeEvOp);
+        [~,ind] = sort(diag(D));
+        V = V(:,ind);
+
+        IPRvec = sum(abs(V).^4,1);
+        IPRs(jj) = mean(IPRvec.^(-1))/sites;
+%         IPRs(ii) = mean(IPRvec);
+
+    end
+    toc
+    figure(234);
+    s = pcolor(lambda,T,IPRs);
+    s.FaceColor = 'interp';
+    s.EdgeAlpha = 0;
+    ax = gca;
+    xlabel('\lambda');
+    ylabel('T');
+    title('IPR of EVecs of U,');
+    ax.FontSize = 14;
+    colorbar;
+    mycolormap = customcolormap(linspace(0,1,11), {'#68011d','#b5172f','#d75f4e','#f7a580','#fedbc9','#f5f9f3','#d5e2f0','#93c5dc','#4295c1','#2265ad','#062e61'});
+    colormap(mycolormap);
+end
+
+function[IPRs] = plotLocalizationLine(beta,phi,sites,lambda,T)
+
+    IPRs = zeros(size(lambda));%to store the IPRs at various points
+    tic
+    for jj = 1:numel(lambda)
+        %lattice and disorder operators
+        H0 = full(gallery('tridiag',sites,-1,0,-1));
+        H0(1,end) = -1; H0(end,1) = -1;
+        pot = diag(cos(2.*pi.*beta.*(1:sites)+phi));
+        %stob time evol operator
+        timeEvOp = expm(-1i.*H0.*T(jj))*expm(-1i.*lambda(jj).*pot);
+
+        [V,D] = eig(timeEvOp);
+        [~,ind] = sort(diag(D));
+        V = V(:,ind);
+
+        IPRvec = sum(abs(V).^4,1);
+        IPRs(jj) = mean(IPRvec.^(-1))/sites;
+
+    end
+end
+
+function[thisP] = theoryExpLine(beta,phi,sites,lambdas,Ts)
+kickNo = 300;
+kicksToSave = 100;
+step = round(kickNo/kicksToSave);
+% psiMat = zeros(sites,kicksToSave,xVarVals);
+widthMat = zeros(kicksToSave,numel(lambdas));
+
+    %initialize wavefunc
+    %single site occupation
+%     init = zeros(sites,1);
+%     init(round(sites/2)) = 1;
+    
+%gaussian
+    sigma = 8;
+    init = exp(-((1:sites)'-sites/2).^2./(2*sigma^2));
+    init = init./norm(init,2);
+
+    
+    
+for ii = 1:numel(lambdas)
+
+    %set lambda
+    lambda = lambdas(ii);
+    T = Ts(ii);
+    psi = init;
+    
+        H0 = full(gallery('tridiag',sites,-1,0,-1));
+    pot = diag(cos(2.*pi.*beta.*(1:sites)+phi));
+%         stob time evol operator
+    timeEvOp = expm(-1i.*H0.*T)*expm(-1i.*lambda.*pot);
+    multTimeStep = timeEvOp^step;
+    
+    widthVec = zeros(kicksToSave,1);
+    for jj = 1:kicksToSave
+        psi = multTimeStep*psi;
+        preWidth = (((1:sites) - sites/2)'.^2 ).*(abs(psi).^2);
+        widthVec(jj) = sqrt(sum(preWidth));
+        
+    end
+    
+    widthMat(:,ii) = widthVec;
+end
+xVec = ((0:step:kickNo-1)+step)';
+
+figure(654);
+% pt1 = subplot(1,2,1);
+thisP = zeros(2,size(widthMat,2));
+for ii = 1:size(widthMat,2)
+    plot(xVec,widthMat(:,ii),'linewidth',2);
+    set(gca,'YScale','log');
+    set(gca,'XScale','log');
+    thisP(:,ii) = polyfit(log(xVec),log(widthMat(:,ii)),1);
+    plot(xVec,exp(thisP(2,ii)).*(xVec.^(thisP(1,ii))));
+    hold on;
+end
+hold off;
+set(gca,'fontsize',14);
+xlabel('Kick No');
+ylabel('RMSD, \sigma');
+title('Floquet Kicking');
+end
+
 
 end

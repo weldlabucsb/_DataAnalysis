@@ -1,6 +1,8 @@
-function [V0s,vvas,ErPerV] = KDimport()
+function [V0s,vvas,ErPerV] = KDimport(path,file)
 %KDIMPORT this is to make importing the relevant KD values straightforward
-[file,path] = uigetfile('*.mat','Please select most recent KD');
+if (nargin < 2)
+    [file,path] = uigetfile('*.mat','Please select most recent KD');
+end
 KDatomdata = load(fullfile(path,file));
 KDatomdata = KDatomdata.atomdata;
 clear V0s; clear vvas; 
