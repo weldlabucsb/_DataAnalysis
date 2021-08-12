@@ -66,7 +66,7 @@ function options = replaceMissingOptions(options)
         options.TitleFontSize = 20;
     end
     if ~isfield(options,'Interpreter')
-        options.Interpreter = "latex";
+        options.Interpreter = "tex";
     end
     if ~isfield(options,'LegendLabels')
         options.LegendLabels = [];

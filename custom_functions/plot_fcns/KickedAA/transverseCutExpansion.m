@@ -1,4 +1,4 @@
-function [fig_handle, fig_filename] = widthExpansionGaussian(RunDatas,RunVars,options)
+function [fig_handle, fig_filename] = transverseCutExpansion(RunDatas,RunVars,options)
 % PLOTFUNCTIONTEMPLATE makes a plot from the given RunDatas against the
 % dependent variable {varied_variable_name}. Optional arguments are passed
 % to setupPlot, which automatically puts axes and a legend on the plot,
@@ -17,6 +17,7 @@ arguments
         'heldvars_all',{{'VVA1064_Er'}});
 end
 arguments
+    options.WeldLab2DriveLetter = 'V'
     %options 
     options.LineWidth (1,1) double = 1.5
     %
@@ -68,7 +69,8 @@ varargin = {RunVars.heldvars_all};
     
    
     %%import the relevant KD parameters
-    [V0s,vvas,secondaryErPerVolt] = KDimport('V:\StrontiumData\2021\2021.06\06.18\16 - 915 kd with correct scope setting\','atomdata.mat');
+    KD_folder_path = strcat(options.WeldLab2DriveLetter,':\StrontiumData\2021\2021.06\06.18\16 - 915 kd with correct scope setting\');
+    [V0s,vvas,secondaryErPerVolt] = KDimport(KD_folder_path,'atomdata.mat');
     secondaryPDGain = 1; 
     
     
