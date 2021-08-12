@@ -1,4 +1,4 @@
-function [fig_handle, fig_filename] = widthExpansionGaussian(RunDatas,RunVars,options)
+function [fig_handle, fig_filename] = transverseCutExpansion(RunDatas,RunVars,options)
 % PLOTFUNCTIONTEMPLATE makes a plot from the given RunDatas against the
 % dependent variable {varied_variable_name}. Optional arguments are passed
 % to setupPlot, which automatically puts axes and a legend on the plot,
