@@ -43,7 +43,7 @@ arguments
     %
     options.LegendLabels = [] % don't specify this if you want auto-labels
     options.LegendTitle string = "" % don't specify if you want auto-title
-    options.Position (1,4) double = [2561, 27, 1920, 963];
+    options.Position (1,4) double = [990, 94, 560, 420];
     %
     options.PlotTitle = "" % don't specify this if you want the auto-title
     %
