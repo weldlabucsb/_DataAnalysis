@@ -93,7 +93,7 @@ function [avg_atomdata, varied_var_values]  = avgRepeats(RunDatas, varied_variab
     for j = 1:Nvars
         % if variable maps 1-to-1 with the varied variable, average with
         % same value of varied variable
-        if ~varnameIsAtomDataVar{j} && size([raw_atomdata.(varnames{j})],2) == N_raw
+        if size([raw_atomdata.(varnames{j})],2) == N_raw
             avgVarVals = ...
                 [accumarray(idx, [sort_raw_atomdata.(varnames{j})], [], @mean)];
             for ii = 1:N
