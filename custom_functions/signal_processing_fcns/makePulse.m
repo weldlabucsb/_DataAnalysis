@@ -1,4 +1,4 @@
-function [outputPulse, t] = makePulse(T_us, tau_us, truncated_pulsewidth_us,options)
+function [outputPulse, t, powers] = makePulse(T_us, tau_us, truncated_pulsewidth_us,options)
 
 arguments
     T_us = 250
@@ -76,6 +76,9 @@ end
     [~,transitions_kHz,~] = bandcalc(options.PrimaryLatticeDepth);
     transitions_kHz = transitions_kHz( cellfun(@(x) ~isempty(x), transitions_kHz) );
     transitions = cellfun(@(x) x*1e3, transitions_kHz, 'UniformOutput', 0);
+    if length(transitions) > 3
+        transitions = transitions(1:3);
+    end
     
     %% Create Pulses and Filter
     
@@ -102,6 +105,7 @@ end
         Y_filt = renormalizeSameArea(Y_filt, Y_gauss);
     else
         Y_filt = Y_gauss;
+        Y_filt_single = Y_filt( pulseIdx );
     end
     
     %% Truncate the pulse
@@ -240,10 +244,12 @@ end
                     thisamp = amplitudes.filtered_truncated;
             end
     else
-        disp('Dialog box skipped. Defaulting to Truncated Filtered Gaussian pulse. Choose a different option by setting option "SkipPulseChoiceDialog" to false.');
-        pulsetype = 'TruncFiltGaussian';
-        thisamp = amplitudes.filtered_truncated;
-        outputPulse = Y_truncated;
+        disp(['Dialog box skipped. Defaulting to square pulse. Choose a different option by setting option "SkipPulseChoiceDialog" to false.']);
+        pulsetype = "Square";
+%         thisamp = amplitudes.filtered_truncated;
+%         outputPulse = Y_truncated;
+        thisamp = amplitudes.square;
+        outputPulse = Y_square;
     end
         
     outputPulse = outputPulse(pulseIdx);

@@ -53,5 +53,6 @@ figure_filename = strrep( figure_filename, "\", "" );
 figure_filename = strrep( figure_filename, "{", "" );
 figure_filename = strrep( figure_filename, "}", "" );
 figure_filename = strrep( figure_filename, "mathrm", "");
+figure_filename = strrep( figure_filename, "/", " over ");
 
 end

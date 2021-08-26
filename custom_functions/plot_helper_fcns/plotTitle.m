@@ -27,8 +27,10 @@ end
 % get nested further and further into cell arrays. If it works, don't
 % question it. If it doesn't, let me know and I'll properly unpack the
 % varargins as they are passed between functions.
-if class(varargin{1}) ~= "cell"
-   varargin{1} = {varargin{1}}; 
+try
+    if class(varargin{1}) ~= "cell"
+       varargin{1} = {varargin{1}}; 
+    end
 end
 
 if ~isempty(varargin)
