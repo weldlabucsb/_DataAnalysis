@@ -17,6 +17,9 @@ arguments
     RunVars
 end
 arguments
+    %
+    options.GaussianFWHM_us (1,1) double = 300
+    %
     options.LineWidth (1,1) double = 1.5
     %
     options.yLabel string = ""
@@ -95,7 +98,7 @@ varargin = {RunVars.heldvars_all};
             
             tic 
             if(1)
-                [lambdaInt] = calc_lambda_gaussian(s1,maxs2,300);
+                [lambdaInt] = calc_lambda_gaussian(s1,maxs2,options.GaussianFWHM_us);
                 disp('Be careful, using default tau');
             else
                 [lambdaInt] = calc_lambda_gaussian(s1,maxs2,RunDatas{j}.vars.PulseWidthus);
