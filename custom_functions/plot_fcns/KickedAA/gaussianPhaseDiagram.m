@@ -49,11 +49,12 @@ varied_variable_name = RunVars.varied_var;
 legendvars = RunVars.heldvars_each;
 varargin = {RunVars.heldvars_all};
 
-    % Use avgRepeats on your RunDatas to extract repeat-averaged values of
-    % whichever cicero variables (vars_to_be_averaged) you want to work
-    % with. Here I wanted those values associated with each RunData
-    % individually, so I looped over the RunDatas and repeat-averaged each
-    % one.
+    %% Camera Params
+    
+    [~,~,pixelsize,mag] = paramsfnc('ANDOR');
+    xConvert = pixelsize/mag * 1e6; % 2020.12.17: adjusted to give x-axis in um
+    
+    %%
     
     vars_to_be_averaged = {'summedODy','RawMaxPeak3Density','cloudSD_y','atomNumber'};
     for j = 1:length(RunDatas)
@@ -87,7 +88,6 @@ varargin = {RunVars.heldvars_all};
             %do delta and J calculations
             s1 = atomdata(ii).vars.(PrimaryLatticeDepthVar);
             
-
             maxs2 = vva_to_voltage(V0s,vvas,atomdata(ii).vars.Lattice915VVA)*secondaryErPerVolt/secondaryPDGain;
             la1 = 1064;
             la2 = 915;
@@ -121,6 +121,8 @@ varargin = {RunVars.heldvars_all};
             Ts(length(Ts)+1) = T_us*J/hbar_Er1064_us;
             Depths915{j}(ii) = maxs2;
             max_ratio{j}(ii) = mean(abs(avg_atomdata{j}(ii).summedODy),'all')/max(abs(avg_atomdata{j}(ii).summedODy),[],'all');
+            
+            X{j} = (1:length(avg_atomdata{j}(ii).summedODy))*xConvert;
             [width, center] = fracWidth( X{j}, avg_atomdata{j}(ii).summedODy, frac,'PlotWidth',0);
 %             if max_ratio{j}(ii) > cutoff
 %                 fracWidths{j}(ii) = NaN;

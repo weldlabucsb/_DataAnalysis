@@ -5,8 +5,6 @@ function [fig_handle, fig_filename] = phase_diagram_check(RunDatas,RunVars,optio
 % resizes the axes, etc.
 % 
 
-
-
 arguments
     RunDatas
     RunVars
