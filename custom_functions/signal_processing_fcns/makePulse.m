@@ -274,7 +274,7 @@ end
         
     %%%%%%%%%%%%%%%%%%%%%%
     
-    if any( options.SaveMat, options.SaveFig, options.SavePNG, options.SaveCSV)
+    if any( [options.SaveMat, options.SaveFig, options.SavePNG, options.SaveCSV])
         save_subfolder = fullfile(options.SaveDirectory, pulseName, filesep);
         if ~isfolder(save_subfolder)
             mkdir(save_subfolder);
