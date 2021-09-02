@@ -20,7 +20,7 @@ arguments
     options.PlotAmplitudes = 1 % toggle labeling the amplitudes of each pulse on the figure.
     options.PlotBandRectangles = 1 % boolean, whether or not to plot the bands as shaded rectangles
     
-    options.SaveDirectory = '\' % default save path
+    options.SaveDirectory = '.\' % default save path
     options.SkipFilePicker = 1 % if false, opens file picker for placing each saved file
     options.OpenSaveDirectory = 0 % if true, opens save directory after saving on Windows machines.
     
@@ -277,10 +277,16 @@ end
     %%%%%%%%%%%%%%%%%%%%%%
     
     if any( [options.SaveMat, options.SaveFig, options.SavePNG, options.SaveCSV])
-        save_subfolder = fullfile(options.SaveDirectory, pulseName, filesep);
-        if ~isfolder(save_subfolder)
-            mkdir(save_subfolder);
+        
+        if options.SaveInSubfolder
+            save_subfolder = fullfile(options.SaveDirectory, pulseName, filesep);
+            if ~isfolder(save_subfolder)
+                mkdir(save_subfolder);
+            end
+        else
+            save_subfolder = options.SaveDirectory;
         end
+        
     end
         
     %%%%%% save pulse mat %%%%%%
@@ -293,11 +299,21 @@ end
             "Select .mat save location.");
             savename = fullfile(fpath,fname);
         end
+        
+        Y1_square = Y_square(pulseIdx);
+        Y1_gauss = Y_gauss(pulseIdx);
+        Y1_filtered = Y_filt(pulseIdx);
+        Y1_truncated = Y_truncated(pulseIdx);
+        summed_powers = powers;
+        relative_amplitudes = amplitudes;
+        freq_vector = f;
+        transition_frequency_ranges = transitions;
        
         save( savename, ...
-            'Y_square', 'Y_gauss', 'Y_filt', 'Y_truncated', ...
-            'pulseIdx', 'T_us', 'tau_us', 'truncated_pulsewidth_us', 'Fs', 'Nt', 't', 'f', ...
-            'transitions', 'powers', 'amplitudes');
+            'Y1_square', 'Y1_gauss', 'Y1_filtered', 'Y1_truncated', ...
+            'pulseIdx', 'T_us', 'tau_us', 'truncated_pulsewidth_us', ...
+            'Fs', 'Nt', 'time_vector', 'freq_vector', ...
+            'transition_frequency_ranges', 'summed_powers', 'relative_amplitudes');
     end
     
     %%%%%% Saving Figure %%%%%%
