@@ -21,6 +21,7 @@ arguments
     options.PlotBandRectangles = 1 % boolean, whether or not to plot the bands as shaded rectangles
     
     options.SaveDirectory = '.\' % default save path
+    options.SaveInSubfolder (1,1) logical = 0
     options.SkipFilePicker = 1 % if false, opens file picker for placing each saved file
     options.OpenSaveDirectory = 0 % if true, opens save directory after saving on Windows machines.
     
