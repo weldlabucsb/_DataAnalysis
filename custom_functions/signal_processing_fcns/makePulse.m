@@ -1,4 +1,4 @@
-function [outputPulse, t, powers] = makePulse(T_us, tau_us, truncated_pulsewidth_us,options)
+function [outputPulse, time_vector, powers] = makePulse(T_us, tau_us, truncated_pulsewidth_us,options)
 
 arguments
     T_us = 250
@@ -20,7 +20,7 @@ arguments
     options.PlotAmplitudes = 1 % toggle labeling the amplitudes of each pulse on the figure.
     options.PlotBandRectangles = 1 % boolean, whether or not to plot the bands as shaded rectangles
     
-    options.SaveDirectory = "G:\My Drive\_WeldLab\Code\_Analysis\pulses\pulseoutput" % default save path
+    options.SaveDirectory = '\' % default save path
     options.SkipFilePicker = 1 % if false, opens file picker for placing each saved file
     options.OpenSaveDirectory = 0 % if true, opens save directory after saving on Windows machines.
     
@@ -70,6 +70,8 @@ end
     
     % time vector for a single pulse (centered at t = 0)
     t = Nt(pulseIdx);
+    
+    time_vector = t;
     
     %%
     
