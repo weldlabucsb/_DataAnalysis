@@ -14,7 +14,7 @@ arguments
     
     options.ExtraFilterWindows = {} % cell array of doubles, {[f1 f2], [f3 f4], ...}, where f's are in Hz. Filters in these windows.
     
-    options.FigurePosition = [2684, 431, 1059, 715] % where the figure is placed by default
+    options.FigurePosition = [0,0,500,500] % where the figure is placed by default
     
     options.PeriodsGraphed = 3 % how many periods (T) of the pulse to plot.
     options.PlotAmplitudes = 1 % toggle labeling the amplitudes of each pulse on the figure.
@@ -25,13 +25,13 @@ arguments
     options.OpenSaveDirectory = 0 % if true, opens save directory after saving on Windows machines.
     
     options.SkipFiltering = 0
-    options.SkipPulseChoiceDialog = 0 % if false, asks whether you want to save Gaussian, filtered gaussian, or truncated filtered gauss pulse.
+    options.SkipPulseChoiceDialog = 1 % if false, asks whether you want to save Gaussian, filtered gaussian, or truncated filtered gauss pulse.
     
-    options.SaveFig = 1 % toggles saving of fig file
-    options.SavePNG = 1 % only works if SaveFig = true. Toggles saving of PNG.
-    options.SaveMat = 1 % toggles saving of key workspace variables to mat file.
+    options.SaveFig = 0 % toggles saving of fig file
+    options.SavePNG = 0 % only works if SaveFig = true. Toggles saving of PNG.
+    options.SaveMat = 0 % toggles saving of key workspace variables to mat file.
     
-    options.SaveCSV = 1 % toggles saving of pulse CSV (for upload to keysight)
+    options.SaveCSV = 0 % toggles saving of pulse CSV (for upload to keysight)
     options.SquareRootCSV = 1 % toggles sqrt of pulse before saving to CSV
     options.MaxCSVValue = 2^(15) - 1 % adjust maximum CSV value (for best keysight resolution)
     options.RemoveCSVZeroes = 1 % trims zeros off the edges of the pulses.

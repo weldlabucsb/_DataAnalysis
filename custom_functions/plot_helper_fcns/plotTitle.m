@@ -33,6 +33,7 @@ try
     end
 end
 
+try
 if ~isempty(varargin)
     if ~isempty(varargin{1})
         held_var_flag = 1;
@@ -54,6 +55,9 @@ if ~isempty(varargin)
         held_var_flag = 0;
     end
 else
+    held_var_flag = 0;
+end
+catch
     held_var_flag = 0;
 end
 

@@ -12,7 +12,7 @@ arguments
    varied_var = 'LatticeHold'
 end
 arguments
-    options.Position = [1567, 438, 746, 464];
+    options.Position = [-1021, 208, 746, 464];
     
     options.RunVars = struct()
     options.ManualHeldVars = {'T','tau'}
@@ -79,7 +79,7 @@ for ii = 1:length(good_fit_tags)
     for j = 1:length(avgRDs{ii})
         avgRDs{ii}(j).T = RunDatas{ii}.ncVars.T;
         avgRDs{ii}(j).tau = RunDatas{ii}.ncVars.tau;
-        avgRDs{ii}(j).PulseType = RunDatas{ii}.ncVars.PulseType;
+%         avgRDs{ii}(j).PulseType = RunDatas{ii}.ncVars.PulseType;
     end
     
     % add as many elements to list as number of runs
