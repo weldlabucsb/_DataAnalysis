@@ -309,9 +309,16 @@ end
         relative_amplitudes = amplitudes;
         freq_vector = f;
         transition_frequency_ranges = transitions;
+        
+        amplitude_spectra.square_pulse = P1_sq;
+        amplitude_spectra.gaussian_pulse = P1_gauss;
+        amplitude_spectra.filtered_pulse = P1_filt;
+        amplitude_spectra.truncated_pulse = P1_trunc;
+        amplitude_spectra.frequency_vector = freq_vector;
        
         save( savename, ...
             'Y1_square', 'Y1_gauss', 'Y1_filtered', 'Y1_truncated', ...
+            'amplitude_spectra',...
             'pulseIdx', 'T_us', 'tau_us', 'truncated_pulsewidth_us', ...
             'Fs', 'Nt', 'time_vector', 'freq_vector', ...
             'transition_frequency_ranges', 'summed_powers', 'relative_amplitudes');
