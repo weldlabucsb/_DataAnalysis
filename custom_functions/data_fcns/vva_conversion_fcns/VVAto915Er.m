@@ -10,9 +10,13 @@ function s2_values = VVAto915Er(Lattice915VVA_vector, options)
 %     false, this is where the file picker will default to and ask you to
 %     choose an atomdata.
 %
-%     KDAtomdataPath (default = empty): You can provide the atomdata from a KD
-%     run to extract the KD calibration for a particular run. (This is only
-%     used if DefaultKDValue = false.)
+%     KDAtomdataPath (default = empty): You can provide the path to an
+%     atomdata from a KD run to extract the KD calibration for a particular
+%     run. (This is only used if DefaultKDValue = false.)
+%
+%     KDAtomdata (default = empty): You can provide the atomdata from a
+%     KD run to extract the KD calibration for a particular run. (This is
+%     only used if DefaultKDValue = false.)
 %
 %     SecondaryPDGain (default = 1): In case it was something else for a
 %     given run. Typically = 10 for static lattice runs, and = 1 for kicked
@@ -36,11 +40,13 @@ function s2_values = VVAto915Er(Lattice915VVA_vector, options)
     else
         % if not using default value, load an atomdata and grab the Er per
         % volt value from there.
-        if isempty(options.KDAtomdataPath)
+        if isempty(options.KDAtomdataPath) && isempty(options.KDAtomdata)
            [atomdata_path, fpath] = ...
                uigetfile(fullfile(options.StrontiumDataPath,"*.mat"),"Choose the KD atomdata."); 
             atomdata = load( fullfile(fpath,atomdata_path) );
             atomdata = atomdata.atomdata;
+        elseif ~isempty(options.KDAtomdata)
+            atomdata = options.KDAtomdata;
         else
            atomdata = load(options.KDAtomdataPath);
            atomdata = atomdata.atomdata;
