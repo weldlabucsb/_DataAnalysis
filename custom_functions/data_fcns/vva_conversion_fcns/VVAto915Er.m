@@ -29,6 +29,7 @@ function s2_values = VVAto915Er(Lattice915VVA_vector, options)
        options.DefaultKDValue (1,1) logical = 0
        options.StrontiumDataPath = "X:\StrontiumData\"
        options.KDAtomdataPath = []
+       options.KDAtomdata = []
        options.secondaryPDGain = 1
     end
     secondaryPDGain = options.secondaryPDGain;
