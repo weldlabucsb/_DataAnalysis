@@ -2,7 +2,7 @@ function [] = pColorCenteredNonGrid(parentAx,xData,yData,valueData,xTol,yTol)
 
     xMin = -0.0001;
 %     xMax = 0.07;
-    xMax = max(xData);
+    xMax = max(xData,[],'all');
 
 
     uniqY = unique(yData);
