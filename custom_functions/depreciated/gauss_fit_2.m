@@ -29,7 +29,7 @@ function [fitresult, gof] = gauss_fit_2(x, y, options)
     
     ampGuess = max(y);
     offsetGuess = min(y);
-    [sigmaGuess, centerGuess] = frac_width(x,y,0.5);
+    [sigmaGuess, centerGuess] = fracWidth(x,y,0.5);
 
     % Set up fittype and options.
     ft = fittype( 'a1 * exp( - (x - b1)^2/(2*sigma1^2) ) + c1', 'independent', 'x', 'dependent', 'y' );

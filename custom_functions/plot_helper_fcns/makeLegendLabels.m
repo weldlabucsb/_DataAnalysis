@@ -16,6 +16,10 @@ function labels = makeLegendLabels(RunDatas, varied_var, legendvars, plot_every)
 
 % General idea: grab the values of each legend variable and add to legend
 
+if class(legendvars) ~= "cell"
+    legendvars = {legendvars};
+end
+
 if ~contains(legendvars,varied_var) % handle case for "all" legendvars
     
     % get legendvar values

@@ -1,4 +1,4 @@
-function [Y,Y2] = dual_gauss_trim_fit(x, y, options)
+function [Y,Y2] = offset_gauss_fit(x, y, options)
 
     arguments
         x double
