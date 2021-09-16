@@ -1,0 +1,1 @@
+While these functions are next to useless, I may have referenced them somewhere obscure that keeps something else working. Please don't remove these unless you know what you're doing!
