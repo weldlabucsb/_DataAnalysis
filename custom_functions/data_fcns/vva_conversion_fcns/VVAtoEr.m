@@ -1,4 +1,4 @@
-function s2_values = VVAto915Er(Lattice915VVA_vector, options)
+function s2_values = VVAtoEr(LatticeVVA_vector, options)
 % VVATO915ER(vva_vector, options) converts vva values for the 915 lattice
 % into lattice depths (in units of 1064 Ers). 
 %
@@ -23,7 +23,7 @@ function s2_values = VVAto915Er(Lattice915VVA_vector, options)
 %     runs.
 %
     arguments
-        Lattice915VVA_vector
+        LatticeVVA_vector
     end
     arguments
        options.DefaultKDValue (1,1) logical = 0
@@ -56,7 +56,7 @@ function s2_values = VVAto915Er(Lattice915VVA_vector, options)
         secondaryErPerVolt = unique(arrayfun(@(x) x.fitKD.B, atomdata));
     end
     
-    voltages = VVAtoVoltage( Lattice915VVA_vector,...
+    voltages = VVAtoVoltage( LatticeVVA_vector,...
         'DefaultKDValue', options.DefaultKDValue, ...
         'KDAtomdata', atomdata);
 
