@@ -7,7 +7,7 @@ function [Y, Y2] = isolate_oort(x, y, options)
     arguments
         options.PlotFit logical = 0
         options.PlotConcavity logical = 0
-%         options.Excluded double = []
+        options.Excluded double = []
 %         options.ExcludeDomain logical = 0
         options.WidthFraction double = 0.5
         options.MinPeakDistance double = 10
@@ -18,7 +18,7 @@ function [Y, Y2] = isolate_oort(x, y, options)
     fudge = options.EdgeFudge;
     widthFraction = options.WidthFraction;
     plotFit = options.PlotFit;
-    
+    excludedPoints = options.Excluded;
 
     %% Determine Edges
     
@@ -48,7 +48,7 @@ function [Y, Y2] = isolate_oort(x, y, options)
     ampGuess = max(y(~excludedPoints));
     
     [sigmaGuess, centerGuess] = ...
-        frac_width(x(~excludedPoints),y(~excludedPoints),widthFraction);
+        fracWidth(x(~excludedPoints),y(~excludedPoints),widthFraction);
 
     % Set up fittype and options.
     ft = fittype( 'A2 * exp( - (x - x2)^2/(2*sigma2^2) )', 'independent', 'x', 'dependent', 'y' );

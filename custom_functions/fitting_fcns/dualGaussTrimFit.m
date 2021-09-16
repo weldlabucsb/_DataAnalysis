@@ -12,31 +12,12 @@ function [Y1,Y2] = dualGaussTrimFit(x, y, options)
         options.peakROI = []
         options.MaximumAmplitude (1,1) double = Inf
         options.LineWidth = 1.5
-%         options.NarrowAmplitudeGuess = []
-%         options.NarrowSigmaGuess = []
-%         options.NarrowOffsetGuess = []
         
     end
     
     excluded = options.Excluded;
     widthFraction = options.WidthFraction;
     plotFit = options.PlotFit;
-    
-%     if ~isempty(options.NarrowAmplitudeGuess)
-%         ampGuess = options.NarrowAmplitudeGuess;
-%     end
-%     
-%     if ~isempty(options.NarrowSigmaGuess)
-%        sigmaGuess = options.NarrowSigmaGuess; 
-%     end
-%     
-%     if ~isempty(options.NarrowOffsetGuess)
-%         offsetGuess = options.NarrowOffsetGuess;
-%     end
-%     
-%     if ~isempty(options.NarrowCenterGuess)
-%         
-%     end
 
     %% First Fit
     [xData, yData] = prepareCurveData( x, y );

@@ -20,7 +20,7 @@ function [Y, Y1, Y2] = dual_gauss_wide_oort(x,y,options)
         y double
     end
     arguments
-        options.PeakFraction1 (1,1) double = 0.85
+        options.PeakFraction1 (1,1) double = 0.65
         options.PlotFit (1,1) logical = 1
     end
 
