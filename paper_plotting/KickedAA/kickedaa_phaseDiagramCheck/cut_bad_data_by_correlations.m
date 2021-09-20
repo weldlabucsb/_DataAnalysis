@@ -36,7 +36,7 @@ if tiles
     nexttile(2);
 else
     figure();
-    set(gcf, 'Position',[3212, 731, 560, 420]);
+    set(gcf, 'Position',[-573, 1041, 560, 420]);
 end
 
 scatter( widths(:), centerPos(:) - meanCenterPos, markerSize, marker )
@@ -76,7 +76,7 @@ if tiles
     nexttile(1);
 else
     figure();
-    set(gcf, 'Position',[2650, 731, 560, 420]);
+    set(gcf, 'Position',[-1135, 1041, 560, 420]);
 end
 
 scatter( avgMaxima(:), centerPos(:) - meanCenterPos, markerSize, marker )
@@ -111,7 +111,7 @@ if tiles
     nexttile(3);
 else
     figure();
-    set(gcf, 'Position',[3774, 731, 560, 420]);
+    set(gcf, 'Position',[-1135, 535, 560, 420]);
 end
 
 widthsPlot = widths;
@@ -143,7 +143,7 @@ if tiles
     nexttile(4);
 else
     figure();
-    set(gcf, 'Position',[2650, 225, 560, 420]);
+    set(gcf, 'Position',[-573, 535, 560, 420]);
 end
 
 scatter( centerPos(:), SNR(:), markerSize, marker)
@@ -220,7 +220,7 @@ if tiles
     nexttile(5)
 else
     figure();
-    set(gcf, 'Position',[3212, 225, 560, 420]);
+    set(gcf, 'Position',[-1135, 29, 560, 420]);
 end
 
 
@@ -244,9 +244,8 @@ if tiles
     nexttile(6);
 else
     figure();
-    set(gcf, 'Position',[3774, 225, 560, 420]);
+    set(gcf, 'Position',[-573, 29, 560, 420]);
 end
-    
 
 widths_SNRandCenter = widths;
 widths_SNRandCenter(~net_SNRandCenter_logi) = NaN;
