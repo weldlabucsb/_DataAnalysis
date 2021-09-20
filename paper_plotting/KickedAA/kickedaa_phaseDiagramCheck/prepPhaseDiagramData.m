@@ -3,10 +3,11 @@ clear;
 %%
 
 % 2/27
-load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_2-27_small_phasemap\2-27_phase_map_data.mat");
+% load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_2-27_small_phasemap\2-27_phase_map_data.mat");
 
 % 6/15
-% load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_6-15_phasemap\data_compiled_on_27-Aug-2021.mat");
+load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_6-15_phasemap\data_compiled_on_27-Aug-2021.mat");
+GaussianFWHM_us = 313; 
 
 %% Colormaps
 
@@ -62,6 +63,7 @@ hbar_Er1064_us = hbar_Er1064 * 1e6;
 
 s1 = 10;
 [J,~] = J_Delta_PiecewiseFit(s1,0);
+the_J = J;
 
 %%
 
@@ -114,20 +116,25 @@ for ii = 1:length(unique_idx)
     if data_date == "2-27"
         s2_vector = vva_to_depth(vvas);
     elseif data_date == "6-15"
-        s2_vector = VVAto915Er(vvas,'KDAtomdata',KDatomdata6_15);
+        s2_vector = VVAtoEr(vvas,'KDAtomdata',KDatomdata6_15);
     end
     
     for j = 1:length(avgRD{ii})
         
         s2 = s2_vector(j);
         
-        [J, Delta] = J_Delta_PiecewiseFit(s1,s2);
         
-        Lambda = Delta * tau / J;
-        
+        if data_date == "2-27"
+            [J, Delta] = J_Delta_PiecewiseFit(s1,s2);
+            Lambda = Delta * tau / J;
+        elseif data_date == "6-15"
+            J = the_J;
+            Lambda = calc_lambda_gaussian(s1,s2,GaussianFWHM_us)/(hbar_Er1064_us);
+        end
+            
         avgRD{ii}(j).s2 = s2;
         avgRD{ii}(j).J = J;
-        avgRD{ii}(j).Delta = Delta;
+%         avgRD{ii}(j).Delta = Delta;
         avgRD{ii}(j).Lambda = Lambda;
         
     end
