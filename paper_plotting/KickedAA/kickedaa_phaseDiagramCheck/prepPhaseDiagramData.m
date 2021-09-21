@@ -27,21 +27,6 @@ rdlist = rdlist(1);
 
 data_date = unique(cellfun(@(rd) strcat(num2str(rd.Month),"-",num2str(rd.Day)), RunDatas));
 
-%% Threshold values
-
-% gAtomNlow = 3e3;
-% gAtomNhi = 1e5;
-% 
-% if data_date == "2-27"
-%     width_threshold = 6e-5;
-%     max_thresholdAmplitude = 210;
-%     thresholdAmplitude = 200;
-% elseif data_date == "6-15"
-%     width_threshold = 6e-5;
-%     max_thresholdAmplitude = 210;
-%     thresholdAmplitude = 200;
-% end
-
 %% Constants
 
 hbar = 1.0545718e-34; % J * sec
@@ -87,7 +72,7 @@ tau = tau_us*J/hbar_Er1064_us;
 %%
 
 vars_to_avg = {'summedODy','cloudSD_y','fitData_y','Delta','gaussAtomNumber_y',...
-    'cloudCenter_y'};
+    'cloudCenter_y','OD'};
 
 %%
 
