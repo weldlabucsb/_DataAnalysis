@@ -4,6 +4,7 @@ clear;
 
 % 2/27
 % load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_2-27_small_phasemap\2-27_phase_map_data.mat");
+% load("G:\My Drive\_WeldLab\Code\_Analysis\other_data\test_2-27_data_load\data_compiled_on_20-Sep-2021.mat");
 
 % 6/15
 load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_6-15_phasemap\data_compiled_on_27-Aug-2021.mat");
