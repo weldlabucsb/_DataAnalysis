@@ -129,7 +129,7 @@ end
 
 %%
 
-avgRD = ODcrop_x(avgRD)
+avgRD = ODcrop_x(avgRD);
 
 %% make data into matrix for plotting
 
@@ -146,7 +146,12 @@ for ii = 1:length(avgRD)
       
       summedODys{ii,j} = avgRD{ii}(j).summedODy;
       
-      SNR(ii,j) = compute_kaa_snr(avgRD{ii}(j));
+      SNR(ii,j) = compute_kaa_snr(avgRD{ii}(j).summedODy);
+      
+      cropWidths(ii,j) = avgRD{ii}(j).cropCloudSD_y;
+      cropAvgMaxima(ii,j) = avgAroundMax(avgRD{ii}(j).summedCropODy, 3);
+      cropSNR(ii,j) = compute_kaa_snr(avgRD{ii}(j).summedCropODy);
+      
    end
 end
 
@@ -155,19 +160,17 @@ Ts_unitless_axis = Ts_unitless(:,1);
 
 %%
 
-function SNR = compute_kaa_snr(avgAD, options)
+function SNR = compute_kaa_snr(summedODy, options)
 
     arguments
-        avgAD
+        summedODy
     end
     arguments
        options.movmeanWindow = 5 
     end
     
-    data = avgAD.summedODy;
-    fitted = avgAD.fitData_y;
-
-    x = 1:length(data);
+    data = summedODy;
+    
     smdata = movmean(data,options.movmeanWindow);
 
     noise = data - smdata;
