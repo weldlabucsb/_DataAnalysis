@@ -72,7 +72,7 @@ tau = tau_us*J/hbar_Er1064_us;
 %%
 
 vars_to_avg = {'summedODy','cloudSD_y','fitData_y','Delta','gaussAtomNumber_y',...
-    'cloudCenter_y','OD'};
+    'cloudCenter_y','OD','fitData_x','cloudSD_x'};
 
 %%
 
@@ -126,6 +126,10 @@ for ii = 1:length(unique_idx)
     end
    
 end
+
+%%
+
+avgRD = ODcrop_x(avgRD)
 
 %% make data into matrix for plotting
 
