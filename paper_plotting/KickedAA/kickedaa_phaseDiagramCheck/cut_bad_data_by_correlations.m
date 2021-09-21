@@ -1,32 +1,51 @@
 close all;
 
-tiles = 0;
+tiles = 1;
+sigma_lims = 1;
 
 if tiles
     tiledlayout(2,3,'Padding','loose','TileSpacing','loose');
-    set(gcf, 'Position',[2870, 410, 1131, 623]);
+    set(gcf, 'Position',[-1161, 305, 1115, 799]);
 end
-% set(gcf, 'Position',[2672, 794, 691, 362]);
 
 %%
 
 markerSize = 30;
 marker = '.';
 % NaNcolor = [0 0 0]/255;
-% NaNcolor = 0.2 * [1 1 1];
-NaNcolor = [1 1 1];
+NaNcolor = 0.2 * [1 1 1];
+% NaNcolor = [1 1 1];
 
 %%
 
 meanCenterPos = mean( rmoutliers(centerPos(:)) );
 
+if ~sigma_lims
+    if data_date == "2-27"
 
-if data_date == "2-27"
-    centerPosTol = 12; % in um
-    minimumSNR = 14;
-elseif data_date == "6-15"
-    centerPosTol = 6; % in um
-    minimumSNR = 14;
+        if ~sigma_lims
+            centerPosTol = 12; % in um
+            minimumSNR = 14;
+        else
+
+        end
+
+    elseif data_date == "6-15"
+        centerPosTol = 6; % in um
+        minimumSNR = 16.75;
+    end
+else
+    Nsigma_threshold = 4;
+    
+    sigma_SNR = std(rmoutliers(SNR(:)));
+    mean_SNR = mean(rmoutliers(SNR(:)));
+    
+    sigma_centerPos = std(rmoutliers(centerPos(:)));
+    
+    sigmaTol = sigma_SNR * Nsigma_threshold;
+    centerPosTol = sigma_centerPos * Nsigma_threshold;
+    
+    minimumSNR = max([mean_SNR - sigmaTol,5]);
 end
 
 %%
@@ -64,6 +83,8 @@ if abs(yylim(2) - yylim(1)) > 600
 end
 
 xxlim = xlim;
+
+
 rectangle('Position',[xxlim(1), -centerPosTol, (xxlim(2) - xxlim(1)) 2*centerPosTol],...
     'FaceColor',[0.5 0 0 0.15]);
 
@@ -165,6 +186,7 @@ yylim = ylim;
 % SNRlims = rectROI.Position(2) + [0,rectROI.Position(4)];
 
 centerPosLims = meanCenterPos + centerPosTol*[-1,1];
+
 SNRlims = [minimumSNR,Inf];
 
 rpos = [centerPosLims(1), SNRlims(1), centerPosLims(2) - centerPosLims(1), yylim(2) - SNRlims(1)];

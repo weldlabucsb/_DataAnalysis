@@ -51,4 +51,4 @@ hc = colorbar;
 xlabel('\lambda');
 ylabel('T');
 ylabel(hc,'SNR','FontSize',12)
-set(gcf, 'Position',[2684, 450, 560, 420]);
+set(gcf, 'Position',[-1135, 29, 560, 420]);
