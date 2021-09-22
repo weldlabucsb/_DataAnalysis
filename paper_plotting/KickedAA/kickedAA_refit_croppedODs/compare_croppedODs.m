@@ -27,26 +27,8 @@ Ttol = 1e-8;
 
 meanCenterPos = mean( rmoutliers(centerPos(:)) );
 cropMeanCenterPos = mean(rmoutliers(cropCenterPos(:)));
-
-if lognormal_limits
     
-    [~,pd] = histfit2( SNR(:), 50, 'lognormal' );
-    
-    sigma_SNR_lognormal = pd.sigma;
-    mean_SNR_lognormal = pd.mu;
-    
-    sigma_SNR = exp(sigma_SNR_lognormal);
-    mean_SNR = exp(mean_SNR_lognormal);
-    
-    [~,pd] = histfit2( cropSNR(:), 50, 'lognormal' );
-    
-    crop_sigma_SNR_lognormal = pd.sigma;
-    crop_mean_SNR_lognormal = pd.mu;
-    
-    % STILL NEED TO FIX PLOTTING FUNCTIONS SO THAT SELECTION IS MADE IN LOG
-    % BASE INSTEAD OF LINEAR (MAYBE JUST WRITE ANOTHER FCN)
-    
-elseif sigma_lims && ~lognormal_limits
+if sigma_lims
     sigma_SNR = std(rmoutliers(SNR(:)));
     mean_SNR = mean(rmoutliers(SNR(:)));
     
