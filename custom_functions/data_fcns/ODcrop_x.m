@@ -1,4 +1,4 @@
-function avgd_rundatas = ODcrop_x( avgd_rundatas, N_sigma_crop )
+function avgd_rundatas = ODcrop_x( avgd_rundatas, N_sigma_crop, options )
 % ODCROP_X crops the OD to a width N_sigma_crop*cloudSD_x around the cloud
 % center in the x (transverse) direction, then recomputes a gaussian fit
 % and the cloud parameters. Takes a repeat-averaged avgd_rundatas that
@@ -7,6 +7,9 @@ function avgd_rundatas = ODcrop_x( avgd_rundatas, N_sigma_crop )
     arguments
         avgd_rundatas
         N_sigma_crop = 4
+    end
+    arguments
+        options.BackgroundSubtraction = 1
     end
     
 CameraName = 'andor';
@@ -69,14 +72,38 @@ for ii = 1:length(avgd_rundatas)
         
         cropOD = ad.OD(:, cropIdx_left:cropIdx_right );
         
+        if options.BackgroundSubtraction
+            noAtomRegion_idxLeft = cropIdx_left - size(cropOD,2);
+            noAtomRegion_idxRight = cropIdx_left - 1;
+            
+            noAtomRegion_idxLeft = max( noAtomRegion_idxLeft, 1 );
+            noAtomRegion_idxRight = min( noAtomRegion_idxRight, length( ad.fitData_x ) );
+            
+            cropOD_noAtoms = ad.OD(:, noAtomRegion_idxLeft:noAtomRegion_idxRight);
+            
+            if ~all(size(cropOD_noAtoms) == size(cropOD))
+                noAtomRegion_idxLeft = cropIdx_right + 1;
+                noAtomRegion_idxRight = cropIdx_right + size(cropOD,2);
+                
+                noAtomRegion_idxLeft = max( noAtomRegion_idxLeft, 1 );
+                noAtomRegion_idxRight = min( noAtomRegion_idxRight, length( ad.fitData_x ) );
+            
+                cropOD_noAtoms = ad.OD(:, noAtomRegion_idxLeft:noAtomRegion_idxRight);
+            end
+            
+            if all(size(cropOD_noAtoms) == size(cropOD))
+                cropOD = cropOD - cropOD_noAtoms;
+                cropOD( cropOD < 0 ) = 0;
+            else
+               warning('Failed to find a region with no atoms for background subtraction. Using raw cropped OD.'); 
+            end
+        end
+        
         summedCropODx = sum(cropOD,1)*(pixelsize/mag)^2/crosssec;
         summedCropODy = transpose(sum(cropOD,2))*(pixelsize/mag)^2/crosssec;
         
         positionMeshX=(1:length(summedCropODx))*pixelsize/mag;
         positionMeshY=(1:length(summedCropODy))*pixelsize/mag;
-        
-%         fitX = gaussian_fit(positionMeshX, summedCropODx);
-%         fitY = gaussian_fit(positionMeshY, summedCropODy);
 
         [fitParamsX, fitDataX] = getFitParams(positionMeshX, summedCropODx);
         [fitParamsY, fitDataY] = getFitParams(positionMeshY, summedCropODy);
@@ -84,21 +111,6 @@ for ii = 1:length(avgd_rundatas)
         avgd_rundatas{ii}(j).cropOD = cropOD;
         avgd_rundatas{ii}(j).summedCropODx = summedCropODx;
         avgd_rundatas{ii}(j).summedCropODy = summedCropODy;
-        
-%         avgd_rundatas{ii}(j).cropCloudSD_x = fitX.c1 / sqrt(2);
-%         avgd_rundatas{ii}(j).cropCloudSD_y = fitY.c1 / sqrt(2);
-%         
-%         avgd_rundatas{ii}(j).cropCloudCenter_x = fitX.b1;
-%         avgd_rundatas{ii}(j).cropCloudCenter_y = fitY.b1;
-%         
-%         avgd_rundatas{ii}(j).cropCloudAmp_x = fitX.a1;
-%         avgd_rundatas{ii}(j).cropCloudAmp_y = fitY.a1;
-%         
-%         avgd_rundatas{ii}(j).cropFit_x = fitX;
-%         avgd_rundatas{ii}(j).cropFit_y = fitY;
-%         
-%         avgd_rundatas{ii}(j).cropFitData_x = fitX(positionMeshX);
-%         avgd_rundatas{ii}(j).cropFitData_y = fitY(positionMeshY);
 
         avgd_rundatas{ii}(j).cropCloudSD_x = fitParamsX(1);
         avgd_rundatas{ii}(j).cropCloudSD_y = fitParamsY(1);
