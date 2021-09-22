@@ -73,22 +73,40 @@ for ii = 1:length(avgd_rundatas)
         cropOD = ad.OD(:, cropIdx_left:cropIdx_right );
         
         if options.BackgroundSubtraction
-            noAtomRegion_idxLeft = cropIdx_left - size(cropOD,2);
-            noAtomRegion_idxRight = cropIdx_left - 1;
+             
+            % first try to get half the dark region from either side of OD
+            noAtomRegionL_idxL = cropIdx_left - ceil(size(cropOD,2)/2);
+            noAtomRegionL_idxR = cropIdx_left - 1;
+            noAtomRegionR_idxL = cropIdx_right + 1;
+            noAtomRegionR_idxR = cropIdx_right + floor(size(cropOD,2)/2);
             
-            noAtomRegion_idxLeft = max( noAtomRegion_idxLeft, 1 );
-            noAtomRegion_idxRight = min( noAtomRegion_idxRight, length( ad.fitData_x ) );
+            noAtomRegionL_idxL = max( noAtomRegionL_idxL, 1 );
+            noAtomRegionR_idxR = min( noAtomRegionR_idxR, length( ad.fitData_x ) );
             
-            cropOD_noAtoms = ad.OD(:, noAtomRegion_idxLeft:noAtomRegion_idxRight);
+            cropOD_noAtoms_L = ad.OD(:,noAtomRegionL_idxL:noAtomRegionL_idxR);
+            cropOD_noAtoms_R = ad.OD(:,noAtomRegionR_idxL:noAtomRegionR_idxR);
+            
+            cropOD_noAtoms = [cropOD_noAtoms_L, cropOD_noAtoms_R];
             
             if ~all(size(cropOD_noAtoms) == size(cropOD))
-                noAtomRegion_idxLeft = cropIdx_right + 1;
-                noAtomRegion_idxRight = cropIdx_right + size(cropOD,2);
                 
-                noAtomRegion_idxLeft = max( noAtomRegion_idxLeft, 1 );
-                noAtomRegion_idxRight = min( noAtomRegion_idxRight, length( ad.fitData_x ) );
+                noAtomRegion_idxL = cropIdx_left - size(cropOD,2);
+                noAtomRegion_idxR = cropIdx_left - 1;
+
+                noAtomRegion_idxL = max( noAtomRegion_idxL, 1 );
+                noAtomRegion_idxR = min( noAtomRegion_idxR, length( ad.fitData_x ) );
+
+                cropOD_noAtoms = ad.OD(:, noAtomRegion_idxL:noAtomRegion_idxR);
+            end
             
-                cropOD_noAtoms = ad.OD(:, noAtomRegion_idxLeft:noAtomRegion_idxRight);
+            if ~all(size(cropOD_noAtoms) == size(cropOD))
+                noAtomRegion_idxL = cropIdx_right + 1;
+                noAtomRegion_idxR = cropIdx_right + size(cropOD,2);
+                
+                noAtomRegion_idxL = max( noAtomRegion_idxL, 1 );
+                noAtomRegion_idxR = min( noAtomRegion_idxR, length( ad.fitData_x ) );
+            
+                cropOD_noAtoms = ad.OD(:, noAtomRegion_idxL:noAtomRegion_idxR);
             end
             
             if all(size(cropOD_noAtoms) == size(cropOD))
