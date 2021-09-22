@@ -4,10 +4,11 @@ clear;
 
 % 2/27
 % load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_2-27_small_phasemap\2-27_phase_map_data.mat");
+
 % load("G:\My Drive\_WeldLab\Code\_Analysis\other_data\test_2-27_data_load\data_compiled_on_20-Sep-2021.mat");
 
 % 6/15
-load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_6-15_phasemap\data_compiled_on_27-Aug-2021.mat");
+% load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_6-15_phasemap\data_compiled_on_27-Aug-2021.mat");
 GaussianFWHM_us = 313; 
 
 %% Colormaps
@@ -148,7 +149,9 @@ for ii = 1:length(avgRD)
       
       SNR(ii,j) = compute_kaa_snr(avgRD{ii}(j).summedODy);
       
+      cropCenterPos(ii,j) = avgRD{ii}(j).cropCloudCenter_y * 1e6;
       cropWidths(ii,j) = avgRD{ii}(j).cropCloudSD_y;
+      cropWidths2(ii,j) = avgRD{ii}(j).cropCloudSD_x;
       cropAvgMaxima(ii,j) = avgAroundMax(avgRD{ii}(j).summedCropODy, 3);
       cropSNR(ii,j) = compute_kaa_snr(avgRD{ii}(j).summedCropODy);
       
@@ -157,6 +160,13 @@ end
 
 lambda_axis = lambda(1,:);
 Ts_unitless_axis = Ts_unitless(:,1);
+
+%%
+
+clearvars ii j RunDatas_with_this_T the_J;
+save(strcat(data_date,"_refitted_data.mat"));
+
+disp('Done!');
 
 %%
 
