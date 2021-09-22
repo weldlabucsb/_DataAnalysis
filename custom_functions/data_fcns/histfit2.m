@@ -123,7 +123,7 @@ np = get(ax,'NextPlot');
 set(ax,'NextPlot','add');
 hh1 = plot(ax, x,y,'r-','LineWidth',2);
 
-if nargout == 1
+if nargout == 1 || nargout == 2
   h = [hh; hh1];
 end
 
