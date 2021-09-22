@@ -2,6 +2,7 @@ close all;
 
 tiles = 1;
 sigma_lims = 1;
+lognormal_limits = 1;
 
 if tiles
     h = figure(1);
@@ -27,21 +28,25 @@ Ttol = 1e-8;
 meanCenterPos = mean( rmoutliers(centerPos(:)) );
 cropMeanCenterPos = mean(rmoutliers(cropCenterPos(:)));
 
-if ~sigma_lims
-    if data_date == "2-27"
-
-        if ~sigma_lims
-            centerPosTol = 12; % in um
-            minimumSNR = 14;
-        else
-
-        end
-
-    elseif data_date == "6-15"
-        centerPosTol = 6; % in um
-        minimumSNR = 16.75;
-    end
-else
+if lognormal_limits
+    
+    [~,pd] = histfit2( SNR(:), 50, 'lognormal' );
+    
+    sigma_SNR_lognormal = pd.sigma;
+    mean_SNR_lognormal = pd.mu;
+    
+    sigma_SNR = exp(sigma_SNR_lognormal);
+    mean_SNR = exp(mean_SNR_lognormal);
+    
+    [~,pd] = histfit2( cropSNR(:), 50, 'lognormal' );
+    
+    crop_sigma_SNR_lognormal = pd.sigma;
+    crop_mean_SNR_lognormal = pd.mu;
+    
+    % STILL NEED TO FIX PLOTTING FUNCTIONS SO THAT SELECTION IS MADE IN LOG
+    % BASE INSTEAD OF LINEAR (MAYBE JUST WRITE ANOTHER FCN)
+    
+elseif sigma_lims && ~lognormal_limits
     sigma_SNR = std(rmoutliers(SNR(:)));
     mean_SNR = mean(rmoutliers(SNR(:)));
     
@@ -63,6 +68,20 @@ else
     crop_centerPosTol = crop_sigma_centerPos * Nsigma_threshold;
     
     crop_minimumSNR = max([crop_mean_SNR - crop_sigmaTol,5]);
+else
+    if data_date == "2-27"
+
+        if ~sigma_lims
+            centerPosTol = 12; % in um
+            minimumSNR = 14;
+        else
+
+        end
+
+    elseif data_date == "6-15"
+        centerPosTol = 6; % in um
+        minimumSNR = 16.75;
+    end
 end
 
 %%
@@ -135,6 +154,8 @@ xlabel("Avg maximum summedODy")
 
 yylim = ylim;
 ylim( [5,yylim(2)*1.1] )
+
+xxlim1 = xlim;
 
 
 %%
@@ -238,6 +259,8 @@ xlabel("(crop) Avg maximum summedODy")
 
 yylim = ylim;
 ylim( [5,yylim(2)*1.1] )
+
+xlim(xxlim1);
 
 %%
 
