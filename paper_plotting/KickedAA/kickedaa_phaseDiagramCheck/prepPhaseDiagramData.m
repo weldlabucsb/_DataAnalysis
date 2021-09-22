@@ -4,10 +4,11 @@ clear;
 
 % 2/27
 % load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_2-27_small_phasemap\2-27_phase_map_data.mat");
+
 % load("G:\My Drive\_WeldLab\Code\_Analysis\other_data\test_2-27_data_load\data_compiled_on_20-Sep-2021.mat");
 
 % 6/15
-load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_6-15_phasemap\data_compiled_on_27-Aug-2021.mat");
+% load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_6-15_phasemap\data_compiled_on_27-Aug-2021.mat");
 GaussianFWHM_us = 313; 
 
 %% Colormaps
@@ -72,7 +73,7 @@ tau = tau_us*J/hbar_Er1064_us;
 %%
 
 vars_to_avg = {'summedODy','cloudSD_y','fitData_y','Delta','gaussAtomNumber_y',...
-    'cloudCenter_y','OD'};
+    'cloudCenter_y','OD','fitData_x','cloudSD_x'};
 
 %%
 
@@ -127,6 +128,10 @@ for ii = 1:length(unique_idx)
    
 end
 
+%%
+
+avgRD = ODcrop_x(avgRD);
+
 %% make data into matrix for plotting
 
 for ii = 1:length(avgRD)
@@ -142,7 +147,14 @@ for ii = 1:length(avgRD)
       
       summedODys{ii,j} = avgRD{ii}(j).summedODy;
       
-      SNR(ii,j) = compute_kaa_snr(avgRD{ii}(j));
+      SNR(ii,j) = compute_kaa_snr(avgRD{ii}(j).summedODy);
+      
+      cropCenterPos(ii,j) = avgRD{ii}(j).cropCloudCenter_y * 1e6;
+      cropWidths(ii,j) = avgRD{ii}(j).cropCloudSD_y;
+      cropWidths2(ii,j) = avgRD{ii}(j).cropCloudSD_x;
+      cropAvgMaxima(ii,j) = avgAroundMax(avgRD{ii}(j).summedCropODy, 3);
+      cropSNR(ii,j) = compute_kaa_snr(avgRD{ii}(j).summedCropODy);
+      
    end
 end
 
@@ -151,19 +163,24 @@ Ts_unitless_axis = Ts_unitless(:,1);
 
 %%
 
-function SNR = compute_kaa_snr(avgAD, options)
+clearvars ii j RunDatas_with_this_T the_J;
+save(strcat(data_date,"_refitted_data.mat"));
+
+disp('Done!');
+
+%%
+
+function SNR = compute_kaa_snr(summedODy, options)
 
     arguments
-        avgAD
+        summedODy
     end
     arguments
        options.movmeanWindow = 5 
     end
     
-    data = avgAD.summedODy;
-    fitted = avgAD.fitData_y;
-
-    x = 1:length(data);
+    data = summedODy;
+    
     smdata = movmean(data,options.movmeanWindow);
 
     noise = data - smdata;
