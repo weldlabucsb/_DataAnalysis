@@ -21,13 +21,16 @@ NaNcolor = 0.2 * [1 1 1];
 
 %%
 
-if data_date == "6-15"
-    Nsigma_threshold_SNR = 4.3;
-    Nsigma_threshold_centerPos = 4;
-elseif data_date == "2-27"
-    Nsigma_threshold_SNR = 2;
-    Nsigma_threshold_centerPos = 8;
-end
+% if data_date == "6-15"
+%     Nsigma_threshold_SNR = 4.3;
+%     Nsigma_threshold_centerPos = 4;
+% elseif data_date == "2-27"
+%     Nsigma_threshold_SNR = 2;
+%     Nsigma_threshold_centerPos = 8;
+% end
+
+Nsigma_threshold_SNR = 2;
+Nsigma_threshold_centerPos = 4;
 
 lambdatol = 1e-8;
 Ttol = 1e-8;
@@ -35,7 +38,13 @@ Ttol = 1e-8;
 % meanCenterPos = mean( rmoutliers(centerPos(:)) );
 % cropMeanCenterPos = mean(rmoutliers(cropCenterPos(:)));
 
-[~,pd] = histfit2( rmoutliers(cropSNR(:)), 50, 'lognormal' );
+figure(2);
+[hh1,pd] = histfit2( rmoutliers(cropSNR(:)), 50, 'lognormal' );
+% [hh1,pd] = histfit2( rmoutliers(cropSNR(:)), 50, 'normal' );
+set(gcf, 'Position',[-1036, 493, 465, 288]);
+xlabel('SNR');
+ylabel('Frequency');
+figure(1);
 
 sigma_SNR = pd.sigma;
 mean_SNR = pd.mu;
@@ -43,7 +52,12 @@ mean_SNR = pd.mu;
 sigmaTol = sigma_SNR * Nsigma_threshold_SNR;
 crop_minimumSNR = max([mean_SNR - sigmaTol,0]);
 
-[~,pd] = histfit2( rmoutliers(cropCenterPos(:)), 50, 'normal');
+figure(3);
+[hh2,pd] = histfit2( rmoutliers(cropCenterPos(:)), 50, 'normal');
+set(gcf, 'Position',[-569, 493, 475, 288]);
+xlabel('Center Position (um)');
+ylabel('Frequency');
+figure(1);
 
 sigma_centerPos = pd.sigma;
 mean_centerPos = pd.mu;
