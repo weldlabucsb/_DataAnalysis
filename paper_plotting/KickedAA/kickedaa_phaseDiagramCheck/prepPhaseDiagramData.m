@@ -147,14 +147,15 @@ for ii = 1:length(avgRD)
       
       summedODys{ii,j} = avgRD{ii}(j).summedODy;
       
-      SNR(ii,j) = compute_kaa_snr(avgRD{ii}(j).summedODy);
+%       SNR(ii,j) = compute_kaa_snr(avgRD{ii}(j).summedODy);
       
       cropCenterPos(ii,j) = avgRD{ii}(j).cropCloudCenter_y * 1e6;
       cropWidths(ii,j) = avgRD{ii}(j).cropCloudSD_y;
       cropWidths2(ii,j) = avgRD{ii}(j).cropCloudSD_x;
       cropAvgMaxima(ii,j) = avgAroundMax(avgRD{ii}(j).summedCropODy, 3);
-      cropSNR(ii,j) = compute_kaa_snr(avgRD{ii}(j).summedCropODy);
-      
+%       cropSNR(ii,j) = compute_kaa_snr(avgRD{ii}(j).summedCropODy);
+      cropSNR(ii,j) = avgRD{ii}(j).signalLevel / avgRD{ii}(j).noiseLevel;
+       
    end
 end
 
@@ -170,23 +171,36 @@ disp('Done!');
 
 %%
 
-function SNR = compute_kaa_snr(summedODy, options)
-
-    arguments
-        summedODy
-    end
-    arguments
-       options.movmeanWindow = 5 
-    end
-    
-    data = summedODy;
-    
-    smdata = movmean(data,options.movmeanWindow);
-
-    noise = data - smdata;
-
-    data_noise_remov = data - noise;
-
-    SNR = snr(data_noise_remov, noise);
-
-end
+% function SNR = compute_kaa_snr(summedODy, options)
+% 
+%     arguments
+%         summedODy
+%     end
+%     arguments
+%        options.movmeanWindow = 5 
+%     end
+%     
+%     data = summedODy;
+%     
+%     smdata = movmean(data,options.movmeanWindow);
+% 
+%     noise = data - smdata;
+% 
+%     data_noise_remov = data - noise;
+% 
+%     SNR = snr(data_noise_remov, noise);
+% 
+% end
+% 
+% function SNR = compute_kaa_snr(summedODy, options)
+%     arguments
+%         summedODy
+%     end
+%     arguments
+%        options.averageMaxRadius = 3
+%        options.smooth = 3
+%     end
+%     
+%     SNR = 
+%     
+% end

@@ -10,9 +10,14 @@ function avgd_rundatas = ODcrop_x( avgd_rundatas, N_sigma_crop, options )
     end
     arguments
         options.BackgroundSubtraction = 1
+        options.SignalLevelSmoothWindow = 3
     end
     
 CameraName = 'andor';
+
+if ~iscell(avgd_rundatas)
+    avgd_rundatas = {avgd_rundatas};
+end
     
 %% For testing
 
@@ -55,17 +60,33 @@ um_per_pixel = pixelsize/mag;
 %     end
 % end
 
+%%
+
+% find crop region from average of all ODs
+
+meanOD = zeros( size(avgd_rundatas{1}(1).OD) );
+for ii = 1:length(avgd_rundatas)
+    for j = 1:length(avgd_rundatas{ii})
+        meanOD = meanOD + avgd_rundatas{ii}(j).OD;
+    end
+end
+
+mean_summedODx = sum(meanOD,1)*(pixelsize/mag)^2/crosssec;
+positionMeshX =(1:length(mean_summedODx))*pixelsize/mag;
+[mean_fitParamsX, ~] = getFitParams(positionMeshX, mean_summedODx);
+mean_cloudSD_x = mean_fitParamsX(1);
+
+[~,centerIdx_x] = max( mean_summedODx );
+sigma_x_idx = round( mean_cloudSD_x / (pixelsize/mag) );
+
+cropIdx_left = centerIdx_x - N_sigma_crop*sigma_x_idx;
+cropIdx_right = centerIdx_x + N_sigma_crop*sigma_x_idx;
+
 for ii = 1:length(avgd_rundatas)
     tic;
     for j = 1:length(avgd_rundatas{ii})
         
         ad = avgd_rundatas{ii}(j);
-        
-        [~,centerIdx_x] = max( ad.fitData_x);
-        sigma_x_idx = round(ad.cloudSD_x / (pixelsize/mag));
-        
-        cropIdx_left = centerIdx_x - N_sigma_crop*sigma_x_idx;
-        cropIdx_right = centerIdx_x + N_sigma_crop*sigma_x_idx;
         
         cropIdx_left = max( cropIdx_left, 1 );
         cropIdx_right = min( cropIdx_right, length( ad.fitData_x ) );
@@ -88,33 +109,24 @@ for ii = 1:length(avgd_rundatas)
             
             cropOD_noAtoms = [cropOD_noAtoms_L, cropOD_noAtoms_R];
             
-            if ~all(size(cropOD_noAtoms) == size(cropOD))
-                
-                noAtomRegion_idxL = cropIdx_left - size(cropOD,2);
-                noAtomRegion_idxR = cropIdx_left - 1;
-
-                noAtomRegion_idxL = max( noAtomRegion_idxL, 1 );
-                noAtomRegion_idxR = min( noAtomRegion_idxR, length( ad.fitData_x ) );
-
-                cropOD_noAtoms = ad.OD(:, noAtomRegion_idxL:noAtomRegion_idxR);
-            end
-            
-            if ~all(size(cropOD_noAtoms) == size(cropOD))
-                noAtomRegion_idxL = cropIdx_right + 1;
-                noAtomRegion_idxR = cropIdx_right + size(cropOD,2);
-                
-                noAtomRegion_idxL = max( noAtomRegion_idxL, 1 );
-                noAtomRegion_idxR = min( noAtomRegion_idxR, length( ad.fitData_x ) );
-            
-                cropOD_noAtoms = ad.OD(:, noAtomRegion_idxL:noAtomRegion_idxR);
-            end
-            
             if all(size(cropOD_noAtoms) == size(cropOD))
                 cropOD = cropOD - cropOD_noAtoms;
                 cropOD( cropOD < 0 ) = 0;
             else
-               warning('Failed to find a region with no atoms for background subtraction. Using raw cropped OD.'); 
+               warning('Failed to find a suitable region (size == size(OD)) with no atoms for background subtraction. Using raw cropped OD.'); 
             end
+            
+            noiseLevel = std(cropOD_noAtoms,[],'all');
+            avgd_rundatas{ii}(j).noiseLevel = noiseLevel;
+            
+            smthCropOD = movmean(movmean(cropOD,...
+                options.SignalLevelSmoothWindow,1),...
+                options.SignalLevelSmoothWindow,2);
+            signalLevel = max( smthCropOD, [], 'all' );
+            avgd_rundatas{ii}(j).signalLevel = signalLevel;
+            
+        else
+            warning("Background subtraction not executed, so the field ''noiselevel'' not assigned.");
         end
         
         summedCropODx = sum(cropOD,1)*(pixelsize/mag)^2/crosssec;
@@ -149,30 +161,6 @@ for ii = 1:length(avgd_rundatas)
         num2str(length(avgd_rundatas)), ' runs.']);
     toc;
 end
-
-end
-
-function [fitresult, gof] = gaussian_fit(xx, yy)
-
-%% Fit: 'untitled fit 1'.
-[xData, yData] = prepareCurveData( xx, yy );
-
-ampGuess = max(yy)*0.95;
-centerGuess = xx( round(length(xx)/2) );
-widthGuess = abs(( xx(end) - xx(1) ))/64;
-
-% Set up fittype and options.
-ft = fittype( 'gauss1' );
-opts = fitoptions( 'Method', 'NonlinearLeastSquares' );
-opts.Display = 'Off';
-opts.Lower = [0 -Inf 0];
-opts.Normalize = 'off';
-% opts.Robust = 'Off';
-% opts.StartPoint = [918.44709665982 0.109847007276218 0.226932513257916];
-opts.StartPoint = [ampGuess, centerGuess, widthGuess];
-
-% Fit model to data.
-[fitresult, gof] = fit( xData, yData, ft, opts );
 
 end
 

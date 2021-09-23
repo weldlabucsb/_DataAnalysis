@@ -1,13 +1,14 @@
-close all;
+% close all;
 
-tiles = 1;
+tiles = 0;
 % sigma_lims = 1;
-% lognormal_limits = 1;
+logs = 0;
+% manual_override_minSNR = 1;
 
 if tiles
     h = figure(1);
     tiledlayout(1,3,'Padding','loose','TileSpacing','loose');
-    set(gcf, 'Position',[-1036, 867, 942, 288]);
+%     set(gcf, 'Position',[-1036, 867, 942, 288]);
     sgtitle(data_date)
 end
 
@@ -21,16 +22,13 @@ NaNcolor = 0.2 * [1 1 1];
 
 %%
 
-% if data_date == "6-15"
-%     Nsigma_threshold_SNR = 4.3;
-%     Nsigma_threshold_centerPos = 4;
-% elseif data_date == "2-27"
-%     Nsigma_threshold_SNR = 2;
-%     Nsigma_threshold_centerPos = 8;
-% end
-
-Nsigma_threshold_SNR = 2;
-Nsigma_threshold_centerPos = 4;
+if data_date == "6-15"
+    Nsigma_threshold_SNR = 4;
+    Nsigma_threshold_centerPos = 4;
+elseif data_date == "2-27"
+    Nsigma_threshold_SNR = 2;
+    Nsigma_threshold_centerPos = 8;
+end
 
 lambdatol = 1e-8;
 Ttol = 1e-8;
@@ -38,23 +36,33 @@ Ttol = 1e-8;
 % meanCenterPos = mean( rmoutliers(centerPos(:)) );
 % cropMeanCenterPos = mean(rmoutliers(cropCenterPos(:)));
 
-figure(2);
-[hh1,pd] = histfit2( rmoutliers(cropSNR(:)), 50, 'lognormal' );
-% [hh1,pd] = histfit2( rmoutliers(cropSNR(:)), 50, 'normal' );
-set(gcf, 'Position',[-1036, 493, 465, 288]);
-xlabel('SNR');
-ylabel('Frequency');
-figure(1);
+if logs
+    figure(2);
+    [hh1,pd] = histfit2( rmoutliers(cropSNR(:)), 50, 'lognormal' );
+    % [hh1,pd] = histfit2( rmoutliers(cropSNR(:)), 50, 'normal' );
+%     set(gcf, 'Position',[-1036, 493, 465, 288]);
+    xlabel('SNR');
+    ylabel('Frequency');
+    figure(1);
 
-sigma_SNR = pd.sigma;
-mean_SNR = pd.mu;
+    sigma_SNR = pd.sigma;
+    mean_SNR = pd.mu;
 
-sigmaTol = sigma_SNR * Nsigma_threshold_SNR;
-crop_minimumSNR = max([mean_SNR - sigmaTol,0]);
+    sigmaTol = sigma_SNR * Nsigma_threshold_SNR;
+    crop_minimumSNR = max([mean_SNR - sigmaTol,0]);
+else
+    mean_SNR = mean( rmoutliers( cropSNR(:) ) );
+    crop_minimumSNR = 0.3 * mean_SNR;
+end
+    
+% if manual_override_minSNR
+%     crop_minimumSNR = log(5)
+%     figure(2);
+% end
 
 figure(3);
 [hh2,pd] = histfit2( rmoutliers(cropCenterPos(:)), 50, 'normal');
-set(gcf, 'Position',[-569, 493, 475, 288]);
+% set(gcf, 'Position',[-569, 493, 475, 288]);
 xlabel('Center Position (um)');
 ylabel('Frequency');
 figure(1);
@@ -63,31 +71,6 @@ sigma_centerPos = pd.sigma;
 mean_centerPos = pd.mu;
 
 centerPosTol = sigma_centerPos * Nsigma_threshold_centerPos;
- 
-%     
-% if sigma_lims
-%     sigma_SNR = std(rmoutliers(SNR(:)));
-%     mean_SNR = mean(rmoutliers(SNR(:)));
-%     
-%     sigma_centerPos = std(rmoutliers(centerPos(:)));
-%     
-%     sigmaTol = sigma_SNR * Nsigma_threshold;
-%     centerPosTol = sigma_centerPos * Nsigma_threshold;
-%     
-%     minimumSNR = max([mean_SNR - sigmaTol,5]);
-%     
-%     %
-%     
-%     crop_sigma_SNR = std(rmoutliers(cropSNR(:)));
-%     crop_mean_SNR = mean(rmoutliers(cropSNR(:)));
-%     
-%     crop_sigma_centerPos = std(rmoutliers(cropCenterPos(:)));
-%     
-%     crop_sigmaTol = crop_sigma_SNR * Nsigma_threshold;
-%     crop_centerPosTol = crop_sigma_centerPos * Nsigma_threshold;
-%     
-%     crop_minimumSNR = max([crop_mean_SNR - crop_sigmaTol,5]);
-% end
 
 %%
 
@@ -98,14 +81,21 @@ else
     set(gcf, 'Position',[-573, 535, 560, 420]);
 end
 
-scatter( cropCenterPos(:), log(cropSNR(:)), markerSize, marker)
-% set(gca,'YScale','log');
-% set(gca,'XScale','log');
+if logs
+    scatter( cropCenterPos(:), log(cropSNR(:)), markerSize, marker)
+else
+    scatter( cropCenterPos(:), cropSNR(:), markerSize, marker)
+end
+
 % 
 xlims = mean_centerPos + [-1,1]*150;
 xlim(xlims);
 
-ylabel("log(SNR)")
+if logs
+    ylabel("log(SNR)")
+else
+    ylabel('SNR');
+end
 xlabel("(crop) Center Position (\mum)")
 
 % yylim = ylim;
@@ -123,8 +113,14 @@ center_over = cropCenterPos > centerPosLims(1);
 center_under = cropCenterPos < centerPosLims(2);
 center_logi = center_over & center_under;
 
-SNR_over = log(cropSNR) > SNRlims(1);
-SNR_under = log(cropSNR) < SNRlims(2);
+if logs == 1
+    SNR_over = log(cropSNR) > SNRlims(1);
+    SNR_under = log(cropSNR) < SNRlims(2);
+else
+    SNR_over = cropSNR > SNRlims(1);
+    SNR_under = cropSNR < SNRlims(2);
+end
+
 SNR_logi = SNR_over & SNR_under;
 
 net_SNRandCenter_logi = center_logi & SNR_logi;
@@ -133,7 +129,11 @@ hold on;
 cpos2 = cropCenterPos(net_SNRandCenter_logi);
 SNR2 = cropSNR( net_SNRandCenter_logi);
 
-scatter( cpos2(:), log(SNR2(:)), markerSize, marker, 'r');
+if logs
+    scatter( cpos2(:), log(SNR2(:)), markerSize, marker, 'r');
+else
+    scatter( cpos2(:), SNR2(:), markerSize, marker, 'r');
+end
 hold off;
 
 %%
@@ -147,15 +147,23 @@ else
     set(gcf, 'Position',[-1135, 29, 560, 420]);
 end
 
-
-scatter( cropAvgMaxima(:), log(cropSNR(:)), markerSize, marker)
-hold on;
-scatter( dens2(:), log(SNR2(:)), markerSize, marker, 'r');
+if logs
+    scatter( cropAvgMaxima(:), log(cropSNR(:)), markerSize, marker)
+    hold on;
+    scatter( dens2(:), log(SNR2(:)), markerSize, marker, 'r');
+else
+    scatter( cropAvgMaxima(:), cropSNR(:), markerSize, marker)
+    hold on;
+    scatter( dens2(:), SNR2(:), markerSize, marker, 'r');
+end
 hold off;
 % set(gca,'YScale','log');
-set(gca,'XScale','log');
-
-ylabel("log(SNR)")
+if logs
+    set(gca,'XScale','log');
+    ylabel("log(SNR)")
+else
+    ylabel('SNR');
+end
 xlabel("(crop) Avg maximum summedODy")
 
 % yylim = ylim;
