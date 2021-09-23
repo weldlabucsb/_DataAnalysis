@@ -1,0 +1,186 @@
+close all;
+
+tiles = 1;
+% sigma_lims = 1;
+% lognormal_limits = 1;
+
+if tiles
+    h = figure(1);
+    tiledlayout(1,3,'Padding','loose','TileSpacing','loose');
+    set(gcf, 'Position',[-1036, 867, 942, 288]);
+    sgtitle(data_date)
+end
+
+%%
+
+markerSize = 30;
+marker = '.';
+% NaNcolor = [0 0 0]/255;
+NaNcolor = 0.2 * [1 1 1];
+% NaNcolor = [1 1 1];
+
+%%
+
+if data_date == "6-15"
+    Nsigma_threshold_SNR = 4.3;
+    Nsigma_threshold_centerPos = 4;
+elseif data_date == "2-27"
+    Nsigma_threshold_SNR = 2;
+    Nsigma_threshold_centerPos = 8;
+end
+
+lambdatol = 1e-8;
+Ttol = 1e-8;
+
+% meanCenterPos = mean( rmoutliers(centerPos(:)) );
+% cropMeanCenterPos = mean(rmoutliers(cropCenterPos(:)));
+
+[~,pd] = histfit2( rmoutliers(cropSNR(:)), 50, 'lognormal' );
+
+sigma_SNR = pd.sigma;
+mean_SNR = pd.mu;
+
+sigmaTol = sigma_SNR * Nsigma_threshold_SNR;
+crop_minimumSNR = max([mean_SNR - sigmaTol,0]);
+
+[~,pd] = histfit2( rmoutliers(cropCenterPos(:)), 50, 'normal');
+
+sigma_centerPos = pd.sigma;
+mean_centerPos = pd.mu;
+
+centerPosTol = sigma_centerPos * Nsigma_threshold_centerPos;
+ 
+%     
+% if sigma_lims
+%     sigma_SNR = std(rmoutliers(SNR(:)));
+%     mean_SNR = mean(rmoutliers(SNR(:)));
+%     
+%     sigma_centerPos = std(rmoutliers(centerPos(:)));
+%     
+%     sigmaTol = sigma_SNR * Nsigma_threshold;
+%     centerPosTol = sigma_centerPos * Nsigma_threshold;
+%     
+%     minimumSNR = max([mean_SNR - sigmaTol,5]);
+%     
+%     %
+%     
+%     crop_sigma_SNR = std(rmoutliers(cropSNR(:)));
+%     crop_mean_SNR = mean(rmoutliers(cropSNR(:)));
+%     
+%     crop_sigma_centerPos = std(rmoutliers(cropCenterPos(:)));
+%     
+%     crop_sigmaTol = crop_sigma_SNR * Nsigma_threshold;
+%     crop_centerPosTol = crop_sigma_centerPos * Nsigma_threshold;
+%     
+%     crop_minimumSNR = max([crop_mean_SNR - crop_sigmaTol,5]);
+% end
+
+%%
+
+if tiles
+    nexttile(1);
+else
+    figure();
+    set(gcf, 'Position',[-573, 535, 560, 420]);
+end
+
+scatter( cropCenterPos(:), log(cropSNR(:)), markerSize, marker)
+% set(gca,'YScale','log');
+% set(gca,'XScale','log');
+% 
+xlims = mean_centerPos + [-1,1]*150;
+xlim(xlims);
+
+ylabel("log(SNR)")
+xlabel("(crop) Center Position (\mum)")
+
+% yylim = ylim;
+% ylim( [5,yylim(2)*1.1] )
+yylim = ylim;
+
+centerPosLims = mean_centerPos + centerPosTol*[-1,1];
+
+SNRlims = [crop_minimumSNR,Inf];
+
+rpos = [centerPosLims(1), SNRlims(1), centerPosLims(2) - centerPosLims(1), yylim(2) - SNRlims(1)];
+rectangle( 'Position', rpos, 'FaceColor', [1 0 0 0.2])
+
+center_over = cropCenterPos > centerPosLims(1);
+center_under = cropCenterPos < centerPosLims(2);
+center_logi = center_over & center_under;
+
+SNR_over = log(cropSNR) > SNRlims(1);
+SNR_under = log(cropSNR) < SNRlims(2);
+SNR_logi = SNR_over & SNR_under;
+
+net_SNRandCenter_logi = center_logi & SNR_logi;
+
+hold on;
+cpos2 = cropCenterPos(net_SNRandCenter_logi);
+SNR2 = cropSNR( net_SNRandCenter_logi);
+
+scatter( cpos2(:), log(SNR2(:)), markerSize, marker, 'r');
+hold off;
+
+%%
+
+dens2 = cropAvgMaxima( net_SNRandCenter_logi );
+
+if tiles
+    nexttile(2)
+else
+    figure();
+    set(gcf, 'Position',[-1135, 29, 560, 420]);
+end
+
+
+scatter( cropAvgMaxima(:), log(cropSNR(:)), markerSize, marker)
+hold on;
+scatter( dens2(:), log(SNR2(:)), markerSize, marker, 'r');
+hold off;
+% set(gca,'YScale','log');
+set(gca,'XScale','log');
+
+ylabel("log(SNR)")
+xlabel("(crop) Avg maximum summedODy")
+
+% yylim = ylim;
+% ylim( [5,yylim(2)*1.1] )
+
+% xlim(xxlim1);
+
+%%
+
+if tiles
+    nexttile(3);
+else
+    figure();
+    set(gcf, 'Position',[-573, 29, 560, 420]);
+end
+
+widths_SNRandCenter = cropWidths;
+widths_SNRandCenter(~net_SNRandCenter_logi) = NaN;
+
+h9 = pColorCenteredNonGrid(gca,lambda,Ts_unitless,...
+    widths_SNRandCenter*1e6,lambdatol,Ttol);
+set(h9,'EdgeColor','none');
+set(gca,'color',NaNcolor);
+
+colormap(usacolormap_exp_final);
+hc = colorbar;
+caxis([5,55]);
+
+ylabel(hc,'\sigma (\mum)','FontSize',12)
+xlabel('\lambda');
+ylabel('T');
+title('Cropped OD Data');
+
+hAx = gca;
+hAx.YAxis.Exponent=0;
+hAx.YDir = 'normal';
+
+%%
+
+copygraphics(gcf)
+
+% saveas(h,strcat(data_date,"_cropRefitCompare.png"));

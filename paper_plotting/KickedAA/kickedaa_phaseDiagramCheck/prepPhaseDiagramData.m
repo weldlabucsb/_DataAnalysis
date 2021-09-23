@@ -8,8 +8,8 @@ clear;
 % load("G:\My Drive\_WeldLab\Code\_Analysis\other_data\test_2-27_data_load\data_compiled_on_20-Sep-2021.mat");
 
 % 6/15
-% load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_6-15_phasemap\data_compiled_on_27-Aug-2021.mat");
-GaussianFWHM_us = 313; 
+load("G:\My Drive\_WeldLab\Code\_Analysis\kickedaa\kickedaa_phaseDiagramCheck\kickedaa_6-15_phasemap\data_compiled_on_27-Aug-2021.mat");
+GaussianFWHM_us = 313;
 
 %% Colormaps
 
@@ -164,7 +164,7 @@ Ts_unitless_axis = Ts_unitless(:,1);
 %%
 
 clearvars ii j RunDatas_with_this_T the_J;
-save(strcat(data_date,"_refitted_data.mat"));
+save(strcat(data_date,"_refitted_data_bkgd-subtracted.mat"));
 
 disp('Done!');
 

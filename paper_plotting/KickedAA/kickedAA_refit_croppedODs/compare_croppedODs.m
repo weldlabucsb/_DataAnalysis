@@ -2,6 +2,7 @@ close all;
 
 tiles = 1;
 sigma_lims = 1;
+lognormal_limits = 1;
 
 if tiles
     h = figure(1);
@@ -26,22 +27,8 @@ Ttol = 1e-8;
 
 meanCenterPos = mean( rmoutliers(centerPos(:)) );
 cropMeanCenterPos = mean(rmoutliers(cropCenterPos(:)));
-
-if ~sigma_lims
-    if data_date == "2-27"
-
-        if ~sigma_lims
-            centerPosTol = 12; % in um
-            minimumSNR = 14;
-        else
-
-        end
-
-    elseif data_date == "6-15"
-        centerPosTol = 6; % in um
-        minimumSNR = 16.75;
-    end
-else
+    
+if sigma_lims
     sigma_SNR = std(rmoutliers(SNR(:)));
     mean_SNR = mean(rmoutliers(SNR(:)));
     
@@ -63,6 +50,20 @@ else
     crop_centerPosTol = crop_sigma_centerPos * Nsigma_threshold;
     
     crop_minimumSNR = max([crop_mean_SNR - crop_sigmaTol,5]);
+else
+    if data_date == "2-27"
+
+        if ~sigma_lims
+            centerPosTol = 12; % in um
+            minimumSNR = 14;
+        else
+
+        end
+
+    elseif data_date == "6-15"
+        centerPosTol = 6; % in um
+        minimumSNR = 16.75;
+    end
 end
 
 %%
@@ -135,6 +136,8 @@ xlabel("Avg maximum summedODy")
 
 yylim = ylim;
 ylim( [5,yylim(2)*1.1] )
+
+xxlim1 = xlim;
 
 
 %%
@@ -238,6 +241,8 @@ xlabel("(crop) Avg maximum summedODy")
 
 yylim = ylim;
 ylim( [5,yylim(2)*1.1] )
+
+xlim(xxlim1);
 
 %%
 
