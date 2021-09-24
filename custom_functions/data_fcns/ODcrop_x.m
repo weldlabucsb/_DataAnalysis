@@ -191,7 +191,7 @@ end
 
 function [outParams, fitData] = fitgaussian(xData,yData,guesspParams)
     NumVar = length(guesspParams);
-    NN = 9000;
+    NN = 1e5;
     options = optimset('MaxFunEvals',NN*NumVar,'MaxIter',NN*NumVar);
     outParams=fminsearch(@(inParams) lsqmingetgauss(inParams,xData,yData),guesspParams,...
         options);
