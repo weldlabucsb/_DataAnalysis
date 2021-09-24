@@ -2,7 +2,7 @@ function avgd_rundatas = ODcrop_x( avgd_rundatas, N_sigma_crop, options )
 % ODCROP_X crops the OD to a width N_sigma_crop*cloudSD_x around the cloud
 % center in the x (transverse) direction, then recomputes a gaussian fit
 % and the cloud parameters. Takes a repeat-averaged avgd_rundatas that
-% contains fields cloudSD_x, fitData_x, and OD.
+% contains the field OD.
 
     arguments
         avgd_rundatas
@@ -88,8 +88,10 @@ for ii = 1:length(avgd_rundatas)
         
         ad = avgd_rundatas{ii}(j);
         
+        xL = size(ad.OD,2);
+        
         cropIdx_left = max( cropIdx_left, 1 );
-        cropIdx_right = min( cropIdx_right, length( ad.fitData_x ) );
+        cropIdx_right = min( cropIdx_right, xL );
         
         cropOD = ad.OD(:, cropIdx_left:cropIdx_right );
         
@@ -102,7 +104,7 @@ for ii = 1:length(avgd_rundatas)
             noAtomRegionR_idxR = cropIdx_right + floor(size(cropOD,2)/2);
             
             noAtomRegionL_idxL = max( noAtomRegionL_idxL, 1 );
-            noAtomRegionR_idxR = min( noAtomRegionR_idxR, length( ad.fitData_x ) );
+            noAtomRegionR_idxR = min( noAtomRegionR_idxR, xL );
             
             cropOD_noAtoms_L = ad.OD(:,noAtomRegionL_idxL:noAtomRegionL_idxR);
             cropOD_noAtoms_R = ad.OD(:,noAtomRegionR_idxL:noAtomRegionR_idxR);
@@ -156,6 +158,17 @@ for ii = 1:length(avgd_rundatas)
 
         avgd_rundatas{ii}(j).cropFitData_x = fitDataX;
         avgd_rundatas{ii}(j).cropFitData_y = fitDataY;
+
+        avgd_rundatas{ii}(j).cropGaussAtomNumber_y=...
+            sqrt(2*pi)...
+            *avgd_rundatas{ii}(j).cropCloudSD_y...
+            *avgd_rundatas{ii}(j).cropCloudAmp_y...
+            /(pixelsize/mag);
+        avgd_rundatas{ii}(j).cropGaussAtomNumber_x=...
+            sqrt(2*pi)...
+            *avgd_rundatas{ii}(j).cropCloudSD_x...
+            *avgd_rundatas{ii}(j).cropCloudAmp_x...
+            /(pixelsize/mag);
     end
     disp(['Completed cropping/fitting ' num2str(ii) '/' ...
         num2str(length(avgd_rundatas)), ' runs.']);
