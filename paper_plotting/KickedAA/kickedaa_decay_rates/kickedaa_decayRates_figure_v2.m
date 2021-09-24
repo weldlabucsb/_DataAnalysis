@@ -87,7 +87,7 @@ for ii = 1:length(runDatas)
    end
 end
 
-avgRDs = ODcrop_x(avgRDs);
+avgRDs = ODcrop_x(avgRDs,6);
 
 %% plot and fit
 
@@ -208,7 +208,7 @@ end
 %% plot fit results
 
 decayRate_figH = figure(500); 
-ax = axes(decayRate_figH,'visible','off');
+% ax = axes(decayRate_figH,'visible','off');
 
 shapes = ['s','o','v'];
 colors = colormap(lines(length(labels)));
@@ -253,6 +253,9 @@ s1 = 10;
     hold on;
     xtickformat('%1.0f')
     ytickformat(fmat(ii))
+    ylabel('Decay Rate');
+    xlabel('T (\mus)');
+    title(
 
     set(gca, 'FontSize', 9);
     
@@ -267,6 +270,7 @@ s1 = 10;
     set(gca,'FontSize', 9)
     set(gca,'FontName','Times New Roman')
     
+    ylim(yLim)
 
 set(decayRate_figH, 'Position', [-577, 889, 481, 312]);
 
