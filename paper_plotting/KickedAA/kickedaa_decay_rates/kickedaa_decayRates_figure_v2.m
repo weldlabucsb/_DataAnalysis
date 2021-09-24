@@ -1,18 +1,8 @@
 clearvars -except Data
 
 % data is from Runs on 3.9 - 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 54 55
-
-analysis_dir = ...
-    "G:\My Drive\_WeldLab\Code\_Analysis\DataAnalysis\paper_plotting\KickedAA\kickedaa_decay_rates";
-cd(analysis_dir);
-
-if ~exist('Data','var')
-    cd("data")
-    disp("Loading data...");
-    load(uigetfile("*.mat"));
-    disp("Data loaded!");
-    cd ..;
-end
+%
+% or download at https://drive.google.com/file/d/11Vj2v7TEuX_qPtBMQvHzvSabcQlWeAc9/view?usp=sharing
 
 runDatas = Data.RunDatas;
 
@@ -37,9 +27,6 @@ plotDecayFits = 1;
 invertT = 0;
 invertRate = 0;
 errbars = 1;
-
-shadErrBars = false;
-shadColor = [0 0 1];
 
 smoothDataPreFit = false;
 SmoothWindow = 0;
@@ -89,39 +76,6 @@ xConvert = pixelsize/mag * 1e6;
 
 allTheTs = cellfun( @(x) x.ncVars, runDatas);
 
-%%
-
-% only occurs for T = 90, T = 50
-
-% specify pairs which have the same T
-
-% % idx = { [1,3], [13,21] };
-% % 
-% % % make subsets of the rundatas to be averaged
-% % for ii = 1:length(idx)
-% %     this_set = idx{ii};
-% %     for j = 1:length(this_set)
-% %         runDatasToBeAvgd{ii,j} = runDatas{this_set(j)};
-% %     end
-% % end
-
-% avg repeats for subsets with same T
-
-% % for ii = 1:size(runDatasToBeAvgd,1)
-% %     tempAvgs{ii} = avgRepeats( {runDatasToBeAvgd{ii,:}} ,varied_var, fns);
-% % %     avgdRunDatas.T = runDatasToBeAvgd{ii,1}.ncVars.T; % this is lazy since avgRepeats doesn't work w ncVars
-% % %     avgdRunDatas.tau = runDatasToBeAvgd{ii,1}.ncVars.tau; % this is lazy since avgRepeats doesn't work w ncVars
-% % end
-
-% remove the sets we just combined into avgdRunDatas
-
-% % for ii = 1:length(idx)
-% %     this_set = idx{ii};
-% %     for j = 1:length(this_set)
-% %         runDatas(this_set(j)) = [];
-% %     end
-% % end
-
 %% Avg the rest of the repeats
 
 clear avgRDs
@@ -133,26 +87,16 @@ for ii = 1:length(runDatas)
    end
 end
 
+avgRDs = ODcrop_x(avgRDs);
+
 %% plot and fit
 
 days = Data.RunProperties.Day;
 labels = [];
 colors = [];
 cN = 0;
-if any(days == 4)
-    labels = [labels, "10"];
-    cN = cN + 1;
-end
-if any(days == 6)
-    labels = [labels, ""];
-    cN = cN + 1;
-end
 if any(days == 9)
     labels = [labels, "10"];
-    cN = cN + 1;
-end
-if any(days == 12)
-    labels = [labels, "15"];
     cN = cN + 1;
 end
 
@@ -162,7 +106,6 @@ cmap = colormap(parula(cN));
 
 thisDay = runDatas{1}.Day;
 nRDs = length(avgRDs);
-k = 1;
 for ii = 1:nRDs
     
     dens{ii} = arrayfun(@(x) x.summedODy, avgRDs{ii}, 'UniformOutput', false);
@@ -178,15 +121,7 @@ for ii = 1:nRDs
     thisDay = runDatas{ii}.Day;
     
     thisL = length(avgRDs{ii});
-    if thisDay == 4
-        excludedIdx = [1:6, (thisL - 2):thisL ];
-    elseif thisDay == 6
-        excludedIdx = [1:6, (thisL - 2):thisL ];
-    elseif thisDay == 9
-        excludedIdx = [1:4, (thisL - 2):thisL ];
-    elseif thisDay == 12
-        excludedIdx = [1:6, (thisL - 2):thisL ];
-    end
+    excludedIdx = [1:4, (thisL - 2):thisL ];
     
     if lastDay ~= thisDay
        k = k + 1; 
@@ -198,11 +133,11 @@ for ii = 1:nRDs
     
     thisConfInt = confint(thisFit);
     thisConfInt = thisConfInt(:,2);
-    yneg{k}(ii) = abs(thisFit.b - thisConfInt(1));
-    ypos{k}(ii) = abs(thisConfInt(2) - thisFit.b);
+    yneg(ii) = abs(thisFit.b - thisConfInt(1));
+    ypos(ii) = abs(thisConfInt(2) - thisFit.b);
     
-    decay_rate{k}(ii) = - thisFit.b;
-    Tvalues{k}(ii) = runDatas{ii}.ncVars.T;
+    decay_rate(ii) = - thisFit.b;
+    Tvalues(ii) = runDatas{ii}.ncVars.T;
     
     disp(strcat("Fit ", num2str(ii), "/", num2str(nRDs), " complete."));
     
@@ -258,17 +193,17 @@ dup_Ts = [50, 90];
 
 if ~invertT
     for ii = 1:length(dup_Ts)
-        idx = find(Tvalues{1} == dup_Ts(ii));
-        Tvalues{1}(idx( 2:end )) = [];
+        idx = find(Tvalues == dup_Ts(ii));
+        Tvalues(idx( 2:end )) = [];
 
-        yneg{1}(idx(1)) = rssq( yneg{1}(idx) );
-        yneg{1}( idx( 2:end ) ) = [];
+        yneg(idx(1)) = rssq( yneg(idx) );
+        yneg( idx( 2:end ) ) = [];
 
-        ypos{1}(idx(1)) = rssq( ypos{1}(idx) );
-        ypos{1}( idx( 2:end ) ) = [];
+        ypos(idx(1)) = rssq( ypos(idx) );
+        ypos( idx( 2:end ) ) = [];
 
-        decay_rate{1}( idx(1) ) = mean( decay_rate{1}(idx) );
-        decay_rate{1}( idx(2:end) ) = [];
+        decay_rate( idx(1) ) = mean( decay_rate{1}(idx) );
+        decay_rate( idx(2:end) ) = [];
     end
 end
 
@@ -284,62 +219,27 @@ tiledlayout(length(labels),1, 'Padding', 'none', 'TileSpacing', 'compact');
 
 fmat = ["%1.0f";"%1.0f"];
 
-s1 = [10,15];
-% legs = ["1st excited","2nd excited","3rd excited","4th excited","5th excited","6th excited","7th excited"];
-legs = ["|g\rangle \rightarrow |1\rangle",...
-    "|g\rangle \rightarrow |2\rangle",...
-    "|g\rangle \rightarrow |3\rangle",...
-    "|g\rangle \rightarrow |4\rangle",...
-    "|g\rangle \rightarrow |1\rangle (2\gamma)",...
-    "|g\rangle \rightarrow |2\rangle (2\gamma)"];
+s1 = 10;
 
-for ii = 1:length(decay_rate)
-    
-%     subplot(3,1,ii);
+% legs = ["|g\rangle \rightarrow |1\rangle",...
+%     "|g\rangle \rightarrow |2\rangle",...
+%     "|g\rangle \rightarrow |3\rangle",...
+%     "|g\rangle \rightarrow |4\rangle",...
+%     "|g\rangle \rightarrow |1\rangle (2\gamma)",...
+%     "|g\rangle \rightarrow |2\rangle (2\gamma)"];
+
     nexttile;
-% for ii = [3,4]  
     if ~invertT
         xlim([10,245]);
     else
         xlim([0,59]);
     end
     ylim([-0.2,4.2])
-
-    if invertT
-        [~,bands] = bandcalc(s1(ii));
-    else
-        [bands,~,higherbands] = bandcalc(s1(ii));
-    end
-%     band_us = cellfun(@(c) c * 2, band_us, 'UniformOutput', 0);
     
     yLim = ylim;
-    clear rpos
-    for j = 2:length(bands)
-        x = min(bands{j});
-        y = min(yLim);
-        w = abs(bands{j}(2) - bands{j}(1));
-        h = abs(yLim(2) - yLim(1));
-        rpos{j} = [x, y, w, h];
-    end
-    
-    x = min(bands{2}) * 2;
-    y = min(yLim);
-    w = abs(bands{2}(2)*2 - bands{2}(1)*2);
-    h = abs(yLim(2) - yLim(1));
-    rpos{end+1} = [x, y, w, h];
-    
-    x = min(bands{3}) * 2;
-    y = min(yLim);
-    w = abs(bands{3}(2)*2 - bands{3}(1)*2);
-    h = abs(yLim(2) - yLim(1));
-    rpos{end+1} = [x, y, w, h];
-    
-    rcolors = flip(colormap( lines(21) ));
-    rcolors(:,4) = 0.7;
 
     if ~errbars
         p = scatter( Tvalues{ii}, decay_rate{ii} * decayRateConvert, dotSize(ii)*3,colors(ii,:),shapes(ii));
-%         p.MarkerStyle = 
     else
         p = errorbar(Tvalues{ii}, decay_rate{ii} * decayRateConvert,...
             yneg{ii} * decayRateConvert, ypos{ii} * decayRateConvert, ...
@@ -350,19 +250,7 @@ for ii = 1:length(decay_rate)
         p.MarkerSize = dotSize(ii);
     end
     
-    
-    if shadErrBars
-
-        errvec{ii} = [ yneg{ii}; ypos{ii} ];
-
-        %     p = shadedErrorBar(Tvalues{ii}, decay_rate{ii}, errvec{ii}, ...
-        %         'lineprops', 'ok');
-        p = shadedErrorBar(Tvalues{ii}, decay_rate{ii}, errvec{ii}, ...
-            'lineprops', {'o','Color',shadColor}, ...
-            'patchSaturation', 0.3);
-    end
     set(p,'HandleVisibility','off');
-%     p.MarkerStyle = shapes(ii);
     
     hold on;
     xtickformat('%1.0f')
@@ -370,23 +258,17 @@ for ii = 1:length(decay_rate)
 
     set(gca, 'FontSize', 9);
     
-    if ii == 1
-       set(gca,'XTickLabel',[]);
-    else
-%       xlabel(gca,"Kick Period (us)")  
-    end
+%     if ii == 1
+%        set(gca,'XTickLabel',[]);
+%     else
     
     ax = gca;
     ax.FontSize = 20;
-    
-%     set(gcf,'ylabel','Decay Rate (ms^{-1})');
-%     set(gcf,'xlabel','Kick Period (us)');
     
     set(ax,'TickDir','out');
     set(gca,'FontSize', 9)
     set(gca,'FontName','Times New Roman')
     
-end
 
 set(decayRate_figH, 'Position', [-577, 889, 481, 312]);
 
@@ -398,24 +280,13 @@ else
     mainFigTitle = "Decay Rate vs. Kick Period";
 end
 
-% mainFigTitle2 = { strcat(depvarname," vs. ",indepvarname);DatesList };
-% mainFigTitle = strcat(depvarname," vs. ",indepvarname);
-
-% sgtitle(mainFigTitle,...
-%     'Interpreter',interpreter,...
-%     'FontSize',titleFontSize);
 
 figFilNam = strcat(strrep(strjoin(string(mainFigTitle2)),'$',''),".png");
 figFilNam = strrep(strrep(figFilNam,", ",","),": ","-");
 
-% set(gca,'Color','none')
-% saveFigure(decayRate_figH, figFilNam, fullfile(outputDir, "decayrate"), 'SaveFigFile', 1, 'FileType', '.png');
-% figFilNam = strrep(figFilNam,'.png','.pdf');
-% exportgraphics(decayRate_figH,fullfile(outputDir, "decayrate", figFilNam),'BackgroundColor','none','ContentType','vector');
-
 %%
 
-save('decay_rate_fit_results.mat','Tvalues','decay_rate','figFilNam','fit','avgRDs','yneg','ypos','colors')
+% save('decay_rate_fit_results.mat','Tvalues','decay_rate','figFilNam','fit','avgRDs','yneg','ypos','colors')
 
 %%
 
