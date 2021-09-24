@@ -34,7 +34,7 @@ SmoothWindow = 0;
 %%
 
 varied_var = 'LatticeHold';
-dependent_var = 'gaussAtomNumber_y';
+dependent_var = 'cropGaussAtomNumber_y';
 
 % vars we want to keep in the repeat-averaging
 fns = {'summedODy','cloudSD_y','gaussAtomNumber_y','OD'};
@@ -108,7 +108,7 @@ thisDay = runDatas{1}.Day;
 nRDs = length(avgRDs);
 for ii = 1:nRDs
     
-    dens{ii} = arrayfun(@(x) x.summedODy, avgRDs{ii}, 'UniformOutput', false);
+    dens{ii} = arrayfun(@(x) x.summedCropODy, avgRDs{ii}, 'UniformOutput', false);
     atomNumber{ii} = arrayfun(@(x) x.(dependent_var), avgRDs{ii});
     holdtimes{ii} = arrayfun(@(x) x.(varied_var), avgRDs{ii}) / 1000;
     x{ii} = ( 1:length(dens{ii}) ) * xConvert;
@@ -180,12 +180,10 @@ if invertT
     end
 end
 
-for ii = 1:length(decay_rate)
-    [Tvalues{ii},idx] = sort(Tvalues{ii});
-    decay_rate{ii} = decay_rate{ii}(idx);
-    yneg{ii} = yneg{ii}(idx);
-    ypos{ii} = ypos{ii}(idx);
-end
+[Tvalues,idx] = sort(Tvalues);
+decay_rate = decay_rate(idx);
+yneg = yneg(idx);
+ypos = ypos(idx);
 
 %% Average the points (and handle errorbars) where T is the same
 
@@ -202,7 +200,7 @@ if ~invertT
         ypos(idx(1)) = rssq( ypos(idx) );
         ypos( idx( 2:end ) ) = [];
 
-        decay_rate( idx(1) ) = mean( decay_rate{1}(idx) );
+        decay_rate( idx(1) ) = mean( decay_rate(idx) );
         decay_rate( idx(2:end) ) = [];
     end
 end
@@ -239,15 +237,15 @@ s1 = 10;
     yLim = ylim;
 
     if ~errbars
-        p = scatter( Tvalues{ii}, decay_rate{ii} * decayRateConvert, dotSize(ii)*3,colors(ii,:),shapes(ii));
+        p = scatter( Tvalues, decay_rate * decayRateConvert, dotSize(1)*3,colors(1,:),shapes(1));
     else
-        p = errorbar(Tvalues{ii}, decay_rate{ii} * decayRateConvert,...
-            yneg{ii} * decayRateConvert, ypos{ii} * decayRateConvert, ...
-            shapes(ii), 'Color', colors(ii,:),...
+        p = errorbar(Tvalues, decay_rate * decayRateConvert,...
+            yneg * decayRateConvert, ypos * decayRateConvert, ...
+            shapes(1), 'Color', colors(1,:),...
             'CapSize',0,...
-            'MarkerFaceColor',colors(ii,:));
+            'MarkerFaceColor',colors(1,:));
         p.LineWidth = lineWidth;
-        p.MarkerSize = dotSize(ii);
+        p.MarkerSize = dotSize(1);
     end
     
     set(p,'HandleVisibility','off');
